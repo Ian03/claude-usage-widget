@@ -136,6 +136,7 @@ header.drag {
   text-transform: uppercase; letter-spacing: 0.6px;
 }
 .badge.error { background: rgba(229, 72, 77, 0.15); color: var(--critical); }
+.badge.warn { background: rgba(245, 180, 0, 0.16); color: var(--warn); }
 
 /* Compact layouts */
 .widget[data-layout="compact"] .limit-meta { display: none; }

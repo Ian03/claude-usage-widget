@@ -115,10 +115,55 @@ function render(payload) {
   statusDot.className = `dot ${stale ? 'stale' : worstSeverity}`;
   lastUpdatedEl.textContent = `Updated ${fmtAge(data.fetchedAt)}`;
   staleBadge.hidden = !stale || !cfg.showStaleIndicator;
-  errorBadge.hidden = !error;
-  if (error) errorBadge.textContent = error.code === 'AUTH_EXPIRED' ? 'auth' : 'offline';
+
+  const eb = errorBadgeFor(error);
+  errorBadge.hidden = eb.hidden;
+  if (!eb.hidden) {
+    errorBadge.textContent = eb.label;
+    errorBadge.title = eb.title;
+    errorBadge.classList.toggle('error', eb.kind === 'error');
+    errorBadge.classList.toggle('warn', eb.kind === 'warn');
+  }
 
   renderGraph();
+}
+
+// The error-badge label needs to tell the user what's actually going on.
+// "OFFLINE" for a 429 made people think the widget was broken. Each error
+// class gets its own label + tooltip; rate-limit is warn-colored, not red,
+// because it isn't an error — it's "please wait, the API throttled us."
+function errorBadgeFor(error) {
+  if (!error) return { hidden: true };
+  if (error.code === 'AUTH_EXPIRED') {
+    return {
+      hidden: false,
+      label: 'auth',
+      kind: 'error',
+      title: 'OAuth token expired. Run `claude` in a terminal once to refresh; the widget will pick up the new token on the next poll.',
+    };
+  }
+  if (error.code === 'RATE_LIMITED') {
+    return {
+      hidden: false,
+      label: 'throttled',
+      kind: 'warn',
+      title: 'Anthropic rate-limited the usage endpoint. The widget will auto-retry shortly — no action needed.',
+    };
+  }
+  if (error.code === 'HTTP_ERROR') {
+    return {
+      hidden: false,
+      label: 'server',
+      kind: 'error',
+      title: error.message || 'Server returned an unexpected status.',
+    };
+  }
+  return {
+    hidden: false,
+    label: 'offline',
+    kind: 'error',
+    title: error.message || 'Network error — the widget will retry.',
+  };
 }
 
 function renderPace(limit, pct) {
