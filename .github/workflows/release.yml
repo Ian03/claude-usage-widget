@@ -12,10 +12,10 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
           cache: 'npm'
@@ -48,9 +48,17 @@ jobs:
           }
           Get-Content dist\SHA256SUMS.txt
 
+      - name: Extract version (strip leading v)
+        if: startsWith(github.ref, 'refs/tags/v')
+        id: version
+        shell: pwsh
+        run: |
+          $v = "${{ github.ref_name }}" -replace '^v',''
+          "version=$v" | Out-File -Append -FilePath $env:GITHUB_OUTPUT
+
       - name: Upload to release
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           draft: true
           files: |
@@ -60,8 +68,8 @@ jobs:
           body: |
             ## Downloads
 
-            - **`ClaudeUsageWidget-${{ github.ref_name }}-portable.exe`** — single-file portable. Run anywhere, no install. (Recommended.)
-            - **`ClaudeUsageWidget-${{ github.ref_name }}-setup.exe`** — one-click installer for `%LOCALAPPDATA%`.
+            - **`ClaudeUsageWidget-${{ steps.version.outputs.version }}-portable.exe`** — single-file portable. Run anywhere, no install. (Recommended.)
+            - **`ClaudeUsageWidget-${{ steps.version.outputs.version }}-setup.exe`** — one-click installer for `%LOCALAPPDATA%`.
 
             Verify with `SHA256SUMS.txt`.
 
