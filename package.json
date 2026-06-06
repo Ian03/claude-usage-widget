@@ -1,6 +1,6 @@
 {
   "name": "claude-usage-widget",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Always-on-top Claude.ai plan usage widget for Windows. Lessons baked in from jens-duttke, niccolo-sabato, SlavomirDurej, thanoban, eddmann/ClaudeMeter, f-is-h/Usage4Claude.",
   "main": "src/main.js",
   "scripts": {
@@ -17,9 +17,12 @@
   "author": "Joshua Ricarder Oducado",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^32.0.0",
+    "electron": "^39.8.5",
     "electron-builder": "^25.1.8",
     "gifenc": "^1.0.3"
+  },
+  "overrides": {
+    "tar": ">=7.5.11"
   },
   "build": {
     "appId": "com.claude-usage-widget",
