@@ -64,15 +64,45 @@ What we explicitly **avoided**:
 - Hitting `claude.ai` directly from Node — Cloudflare blocks the runtime's TLS fingerprint.
 - Hardcoding three quota types — the OAuth endpoint returns a dynamic set; we iterate.
 
-## Quick start
+## Install
 
-### For non-developers
+You need [Claude Code](https://claude.com/claude-code) installed and logged in either way, because the widget reads the OAuth token it maintains at `~/.claude/.credentials.json`.
+
+### Windows — download the EXE
 
 1. Download the latest **portable .exe** from [Releases](../../releases/latest).
 2. Double-click it. SmartScreen → **More info → Run anyway**.
 3. Right-click the tray icon for options, or click the cog inside the widget for the full settings panel.
 
-You need [Claude Code](https://claude.com/claude-code) installed and logged in so that the OAuth token exists at `~/.claude/.credentials.json`. The widget reads that token. There's no separate login.
+### macOS, Linux, or anyone who'd rather build from source
+
+You already have the perfect tool to set this up: your own Claude Code. Paste the prompt below into a Claude Code session and let it handle the install. Works on macOS (Apple Silicon and Intel), Linux, and Windows.
+
+````
+Set up the Claude Usage Widget from https://github.com/projectvelox/claude-usage-widget on this machine.
+
+1. Clone the repo into ~/Applications/claude-usage-widget (create the parent
+   directory if needed; on Linux feel free to use ~/.local/share instead).
+2. Run `npm install` in that directory.
+3. Run `npm start` and confirm the floating widget appears in a corner of my
+   screen. If it does, leave it running.
+4. If I ask for a redistributable binary, run `npm run build:mac` (macOS),
+   `npm run build:linux` (Linux), or `npm run build` (Windows) and tell me
+   the path of the artifact under dist/.
+
+If Node 18+ is not installed, install it via Homebrew (macOS) or my system
+package manager (Linux) after asking permission. Do not modify shell rc
+files. The widget reads ~/.claude/.credentials.json, so once it launches
+it should start showing live usage within ~60 seconds.
+````
+
+After the first run, you can use whichever pattern you prefer for re-launching:
+
+- macOS: double-click the built `.app` (inside the `.dmg`), or `npm start` from the cloned dir.
+- Linux: run the `.AppImage`, or `npm start` from the cloned dir.
+- Windows: double-click the portable `.exe`, or `npm start` from the cloned dir.
+
+To make it auto-launch with your OS: open the widget, click the settings cog → **Startup → Start with [OS]**.
 
 ### For developers
 
