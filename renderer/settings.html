@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self';" />
+  <link rel="stylesheet" href="settings.css" />
+  <title>Settings</title>
+</head>
+<body>
+  <main>
+    <h1>Claude Usage Widget</h1>
+    <p class="subtitle">Cosmetic and behavior options. Changes apply live.</p>
+
+    <section>
+      <h2>Layout</h2>
+      <div class="row">
+        <label for="layout">Density</label>
+        <select id="layout">
+          <option value="expanded">Expanded (header + countdowns)</option>
+          <option value="compact">Compact (header only)</option>
+          <option value="essential">Essential (bars only)</option>
+        </select>
+      </div>
+      <div class="row toggle"><label for="alwaysOnTop">Always on top</label><input type="checkbox" id="alwaysOnTop"></div>
+      <div class="row toggle"><label for="clickThrough">Click-through</label><input type="checkbox" id="clickThrough"></div>
+      <div class="row toggle"><label for="showHeader">Show header</label><input type="checkbox" id="showHeader"></div>
+      <div class="row toggle"><label for="showResetCountdown">Show reset countdown</label><input type="checkbox" id="showResetCountdown"></div>
+      <div class="row toggle"><label for="showPaceMarker">Show pace marker</label><input type="checkbox" id="showPaceMarker"></div>
+      <div class="row toggle"><label for="showStaleIndicator">Show stale-data badge</label><input type="checkbox" id="showStaleIndicator"></div>
+    </section>
+
+    <section>
+      <h2>Look</h2>
+      <div class="row">
+        <label for="theme">Theme</label>
+        <select id="theme">
+          <option value="system">Follow system</option>
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+        </select>
+      </div>
+      <div class="row"><label for="accentColor">Accent</label><input type="color" id="accentColor"></div>
+      <div class="row">
+        <label for="opacity">Opacity</label>
+        <input type="range" id="opacity" min="0.4" max="1" step="0.02">
+        <span class="val" id="opacityVal"></span>
+      </div>
+      <div class="row">
+        <label for="cornerRadius">Corner radius</label>
+        <input type="range" id="cornerRadius" min="0" max="28" step="1">
+        <span class="val" id="cornerRadiusVal"></span>
+      </div>
+      <div class="row">
+        <label for="fontScale">Font size</label>
+        <input type="range" id="fontScale" min="0.85" max="1.6" step="0.05">
+        <span class="val" id="fontScaleVal"></span>
+      </div>
+      <div class="row">
+        <label for="fontFamily">Font family</label>
+        <select id="fontFamily">
+          <option value="system">System default</option>
+          <option value="'Segoe UI', sans-serif">Segoe UI</option>
+          <option value="'Inter', sans-serif">Inter</option>
+          <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+          <option value="'Cascadia Code', monospace">Cascadia Code</option>
+        </select>
+      </div>
+      <div class="row toggle"><label for="blur">Background blur</label><input type="checkbox" id="blur"></div>
+    </section>
+
+    <section>
+      <h2>Tray icon</h2>
+      <div class="row">
+        <label for="trayIconStyle">Style</label>
+        <select id="trayIconStyle">
+          <option value="bars">Bars (static)</option>
+          <option value="battery">Battery (static)</option>
+          <option value="gauge">Gauge (static)</option>
+          <option value="minimal">Minimal dot (static)</option>
+          <option value="dynamic">Dynamic gauge (reflects worst limit)</option>
+        </select>
+      </div>
+    </section>
+
+    <section>
+      <h2>History graph</h2>
+      <div class="row toggle"><label for="showHistoryGraph">Show 7-day graph</label><input type="checkbox" id="showHistoryGraph"></div>
+      <div class="row">
+        <label for="historyLimitId">Series</label>
+        <select id="historyLimitId">
+          <option value="seven_day">Weekly · all models</option>
+          <option value="seven_day_sonnet">Weekly · Sonnet</option>
+          <option value="seven_day_opus">Weekly · Opus</option>
+          <option value="five_hour">Current session</option>
+          <option value="extra_usage">Extra usage</option>
+        </select>
+      </div>
+    </section>
+
+    <section>
+      <h2>Thresholds</h2>
+      <div class="row"><label for="warn">Warn at %</label><input type="number" id="warn" min="0" max="100" step="1"></div>
+      <div class="row"><label for="critical">Critical at %</label><input type="number" id="critical" min="0" max="100" step="1"></div>
+      <div class="row"><label for="okColor">OK color</label><input type="color" id="okColor"></div>
+      <div class="row"><label for="warnColor">Warn color</label><input type="color" id="warnColor"></div>
+      <div class="row"><label for="criticalColor">Critical color</label><input type="color" id="criticalColor"></div>
+    </section>
+
+    <section>
+      <h2>Notifications</h2>
+      <div class="row toggle"><label for="notifyAtWarn">Notify at warn threshold</label><input type="checkbox" id="notifyAtWarn"></div>
+      <div class="row toggle"><label for="notifyAtCritical">Notify at critical threshold</label><input type="checkbox" id="notifyAtCritical"></div>
+    </section>
+
+    <section>
+      <h2>Reset hooks</h2>
+      <p class="muted">Shell commands run when a quota resets. Env vars set: <code>CLAUDE_RESET_ID</code>, <code>CLAUDE_RESET_LABEL</code>, <code>CLAUDE_RESET_AT</code>.</p>
+      <div class="row stretch"><label for="onReset_five_hour">5-hour session</label><input type="text" id="onReset_five_hour" placeholder="e.g. powershell -c \"New-BurntToastNotification -Text 'Session reset'\""></div>
+      <div class="row stretch"><label for="onReset_seven_day">Weekly all-models</label><input type="text" id="onReset_seven_day" placeholder=""></div>
+      <div class="row stretch"><label for="onReset_seven_day_sonnet">Weekly Sonnet</label><input type="text" id="onReset_seven_day_sonnet" placeholder=""></div>
+      <div class="row stretch"><label for="onReset_seven_day_opus">Weekly Opus</label><input type="text" id="onReset_seven_day_opus" placeholder=""></div>
+    </section>
+
+    <section>
+      <h2>Startup</h2>
+      <div class="row toggle"><label for="openAtLogin">Start with Windows</label><input type="checkbox" id="openAtLogin"></div>
+      <div class="row toggle"><label for="openMinimized">Open hidden (tray only)</label><input type="checkbox" id="openMinimized"></div>
+    </section>
+
+    <section>
+      <h2>About</h2>
+      <p class="muted">Reads OAuth token from <code>~/.claude/.credentials.json</code>. Token refresh is picked up automatically on the next poll.</p>
+      <div class="actions-row">
+        <button id="openCreds">Open credentials file</button>
+        <button id="quit" class="danger">Quit widget</button>
+      </div>
+    </section>
+  </main>
+  <script src="settings.js"></script>
+</body>
+</html>
