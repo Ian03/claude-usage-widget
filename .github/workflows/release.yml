@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Build icons
+        run: npm run icons
+
+      - name: Build portable EXE
+        run: npm run build
+        env:
+          # The packaged EXE itself never sees this var when run by users, but it
+          # would cause electron-builder's smoke-test to fail. Strip it for CI too.
+          ELECTRON_RUN_AS_NODE: ''
+
+      - name: Build installer EXE
+        run: npm run build:installer
+
+      - name: Compute SHA-256 sums
+        shell: pwsh
+        run: |
+          Get-ChildItem dist\*.exe | ForEach-Object {
+            $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower()
+            "$hash  $($_.Name)" | Out-File -Append -FilePath dist\SHA256SUMS.txt -Encoding ascii
+          }
+          Get-Content dist\SHA256SUMS.txt
+
+      - name: Upload to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: |
+            dist/*.exe
+            dist/SHA256SUMS.txt
+          fail_on_unmatched_files: true
+          body: |
+            ## Downloads
+
+            - **`ClaudeUsageWidget-${{ github.ref_name }}-portable.exe`** — single-file portable. Run anywhere, no install. (Recommended.)
+            - **`ClaudeUsageWidget-${{ github.ref_name }}-setup.exe`** — one-click installer for `%LOCALAPPDATA%`.
+
+            Verify with `SHA256SUMS.txt`.
+
+            > **First-launch note for Windows:** the EXE is unsigned, so SmartScreen will show "Windows protected your PC." Click **More info → Run anyway**. We're applying for free OSS code signing; until that lands, this is a one-time click per machine.
+
+      - name: Upload artifacts (non-tag runs)
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-portable
+          path: |
+            dist/*.exe
+            dist/SHA256SUMS.txt

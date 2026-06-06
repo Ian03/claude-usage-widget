@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+
+# Build output (we publish via GitHub Releases, not git)
+dist/
+out/
+build/
+
+# Local caches and logs
+*.log
+npm-debug.log*
+.npm
+.cache/
+coverage/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# Editor and IDE state
+.vscode/
+.idea/
+*.code-workspace
+*.swp
+*.swo
+*~
+
+# Local environment and credentials (safety net — these should never live here,
+# but if they ever do, never commit them)
+.env
+.env.*
+*.pem
+*.key
+.credentials.json
+credentials.json
+*.token
+secrets.*
+
+# Electron / packaging scratch
+*.tgz
+.electron-builder/
+
+# Test scratch
+tmp/
+temp/
