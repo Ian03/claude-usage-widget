@@ -2,7 +2,7 @@
 node_modules/
 
 # Build output (we publish via GitHub Releases, not git)
-dist/
+dist*/
 out/
 build/
 
