@@ -137,6 +137,11 @@ header.drag {
 }
 .badge.error { background: rgba(229, 72, 77, 0.15); color: var(--critical); }
 .badge.warn { background: rgba(245, 180, 0, 0.16); color: var(--warn); }
+.badge.soft {
+  background: var(--track); color: var(--fg-dim);
+  text-transform: none; letter-spacing: 0;
+  font-size: calc(10px * var(--font-scale));
+}
 
 /* Compact layouts */
 .widget[data-layout="compact"] .limit-meta { display: none; }

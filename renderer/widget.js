@@ -16,9 +16,45 @@ const pillLabel = $('pillLabel');
 
 let currentCfg = null;
 let lastData = null;
+let lastError = null;
 let history = [];
+let pendingResize = false;
+let lastSentHeight = 0;
+
+// "Syncing" and "paused" are soft framings for stale / rate-limited. They're
+// only surfaced once the condition has actually persisted long enough to be
+// worth a user's attention — sub-minute blips never reach the UI, so a
+// non-technical user doesn't get alarmed by transient quirks.
+const SOFT_STALE_MS = 5 * 60 * 1000;
+const SOFT_THROTTLE_MS = 2 * 60 * 1000;
+let staleSince = null;
+let throttledSince = null;
+
+// Ask main to fit the window to the actual content height. The expanded layout
+// has variable rows (N limits × optional countdown + optional graph + footer),
+// so a hardcoded window height clips the bottom. Re-runs whenever the .widget
+// box resizes via ResizeObserver below.
+function requestFit() {
+  if (pendingResize) return;
+  pendingResize = true;
+  requestAnimationFrame(() => {
+    pendingResize = false;
+    if (!currentCfg || currentCfg.layout === 'minimal') return;
+    const h = root.offsetHeight + 16; // 8px margin top + 8px margin bottom
+    if (h <= 0 || h === lastSentHeight) return;
+    lastSentHeight = h;
+    window.api.resize?.(h);
+  });
+}
+
+if (typeof ResizeObserver === 'function') {
+  new ResizeObserver(() => requestFit()).observe(root);
+}
 
 function applyTheme(cfg) {
+  // Layout swaps (minimal <-> expanded) change the window dimensions outside
+  // the renderer's knowledge, so clear the cached height to force a refit.
+  if (currentCfg && currentCfg.layout !== cfg.layout) lastSentHeight = 0;
   currentCfg = cfg;
   const theme = cfg.theme === 'system'
     ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
@@ -84,6 +120,19 @@ function fmtAge(ts) {
 function render(payload) {
   const { data, stale, error } = payload;
   lastData = data;
+  lastError = error || null;
+
+  // Track when each soft state began so the badge only surfaces after the
+  // condition has persisted past its threshold. Clearing on recovery means a
+  // brief blip never even reaches the user's eyes.
+  if (stale) { if (staleSince == null) staleSince = Date.now(); }
+  else { staleSince = null; }
+  if (error && error.code === 'RATE_LIMITED') {
+    if (throttledSince == null) throttledSince = Date.now();
+  } else {
+    throttledSince = null;
+  }
+
   if (!data || !data.limits) {
     limitsEl.innerHTML = '<div class="limit-label" style="opacity:0.7">Waiting for first fetch…</div>';
     return;
@@ -118,7 +167,9 @@ function render(payload) {
   statusDot.className = `dot ${stale ? 'stale' : worstSeverity}`;
   lastUpdatedEl.textContent = `Updated ${fmtAge(data.fetchedAt)}`;
   renderPill(data, stale, worstSeverity);
-  staleBadge.hidden = !stale || !cfg.showStaleIndicator;
+
+  const staleLong = staleSince != null && (Date.now() - staleSince) >= SOFT_STALE_MS;
+  staleBadge.hidden = !stale || !cfg.showStaleIndicator || !staleLong;
 
   const eb = errorBadgeFor(error);
   errorBadge.hidden = eb.hidden;
@@ -127,6 +178,7 @@ function render(payload) {
     errorBadge.title = eb.title;
     errorBadge.classList.toggle('error', eb.kind === 'error');
     errorBadge.classList.toggle('warn', eb.kind === 'warn');
+    errorBadge.classList.toggle('soft', eb.kind === 'soft');
   }
 
   renderGraph();
@@ -147,11 +199,15 @@ function errorBadgeFor(error) {
     };
   }
   if (error.code === 'RATE_LIMITED') {
+    // Stay silent for the first couple of minutes — most rate-limit windows
+    // clear within ~60s and surfacing "throttled" would just panic the user.
+    const throttledLong = throttledSince != null && (Date.now() - throttledSince) >= SOFT_THROTTLE_MS;
+    if (!throttledLong) return { hidden: true };
     return {
       hidden: false,
-      label: 'throttled',
-      kind: 'warn',
-      title: 'Anthropic rate-limited the usage endpoint. The widget will auto-retry shortly — no action needed.',
+      label: 'paused',
+      kind: 'soft',
+      title: 'Pausing briefly — Anthropic asked us to wait. The widget will pick back up on its own.',
     };
   }
   if (error.code === 'HTTP_ERROR') {
@@ -230,16 +286,23 @@ function renderGraph() {
   const t1 = Math.max(points[points.length - 1].t, Date.now());
   const span = Math.max(1, t1 - t0);
   const x = (t) => PAD + ((t - t0) / span) * (W - PAD * 2);
-  // y inverted, scale 0..100
-  const y = (v) => PAD + (1 - Math.max(0, Math.min(100, v)) / 100) * (H - PAD * 2);
 
-  // Build path
+  // Auto-scale Y so low-utilization series still read as a real line instead
+  // of hugging the floor. Floor the scale at 25 so a flat-zero chart keeps
+  // some headroom and gridlines remain meaningful.
+  const peak = points.reduce((m, p) => Math.max(m, p.v), 0);
+  const yMax = Math.min(100, Math.max(25, peak * 1.2));
+  const y = (v) => PAD + (1 - Math.max(0, Math.min(yMax, v)) / yMax) * (H - PAD * 2);
+
   let d = `M ${x(points[0].t)} ${y(points[0].v)}`;
   for (let i = 1; i < points.length; i++) d += ` L ${x(points[i].t)} ${y(points[i].v)}`;
   const areaD = `${d} L ${x(points[points.length - 1].t)} ${H - PAD} L ${x(points[0].t)} ${H - PAD} Z`;
 
-  // 25/50/75 reference lines
-  const gridY = [25, 50, 75].map((v) => `<line class="grid" x1="${PAD}" y1="${y(v)}" x2="${W - PAD}" y2="${y(v)}" />`).join('');
+  // Gridlines at 1/4, 1/2, 3/4 of the visible scale (not fixed 25/50/75).
+  const gridY = [0.25, 0.5, 0.75].map((f) => {
+    const yi = PAD + (1 - f) * (H - PAD * 2);
+    return `<line class="grid" x1="${PAD}" y1="${yi}" x2="${W - PAD}" y2="${yi}" />`;
+  }).join('');
 
   graphSvg.innerHTML = `${gridY}<path class="area" d="${areaD}" /><path class="line" d="${d}" />`;
 }
@@ -285,7 +348,9 @@ async function init() {
   });
 
   setInterval(() => {
-    if (lastData) render({ data: lastData, stale: staleBadge.hidden ? false : true, error: null });
+    // Preserve the last known error so the soft "syncing"/"paused" gates
+    // continue to count up instead of resetting every 30s.
+    if (lastData) render({ data: lastData, stale: !!lastError || (staleSince != null), error: lastError });
   }, 30_000);
 }
 

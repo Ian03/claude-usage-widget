@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('api', {
   getLastUsage: () => ipcRenderer.invoke('usage:last'),
   refresh: () => ipcRenderer.invoke('usage:refresh'),
   drag: (dx, dy) => ipcRenderer.invoke('window:drag', { dx, dy }),
+  resize: (h) => ipcRenderer.invoke('window:resize', { h }),
   openSettings: () => ipcRenderer.invoke('settings:open'),
   closeSettings: () => ipcRenderer.invoke('settings:close'),
   quit: () => ipcRenderer.invoke('app:quit'),

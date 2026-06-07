@@ -49,20 +49,20 @@ function createWidget() {
 
   if (cfg.alwaysOnTop) {
     widgetWindow.setAlwaysOnTop(true, 'screen-saver');
-    setInterval(() => {
-      if (widgetWindow && !widgetWindow.isDestroyed() && cfg.alwaysOnTop) {
-        widgetWindow.setAlwaysOnTop(true, 'screen-saver');
-      }
-    }, 30_000);
   }
 
   widgetWindow.loadFile(path.join(__dirname, '..', 'renderer', 'widget.html'));
   widgetWindow.once('ready-to-show', () => widgetWindow.show());
 
+  // 'moved' fires for every pixel of a drag. Persisting synchronously to disk
+  // on each event blocks the main thread mid-drag and makes the widget feel
+  // stuck or unclickable. Debounce so we only write once the user lets go.
+  let moveSaveTimer = null;
   widgetWindow.on('moved', () => {
     const [nx, ny] = widgetWindow.getPosition();
     cfg.position = { x: nx, y: ny };
-    config.save(cfg);
+    if (moveSaveTimer) clearTimeout(moveSaveTimer);
+    moveSaveTimer = setTimeout(() => { moveSaveTimer = null; config.save(cfg); }, 800);
   });
 
   widgetWindow.on('closed', () => { widgetWindow = null; });
@@ -330,6 +330,17 @@ app.whenReady().then(() => {
     const [x, y] = widgetWindow.getPosition();
     widgetWindow.setPosition(x + dx, y + dy);
   });
+  ipcMain.handle('window:resize', (_evt, { h }) => {
+    // Renderer measures actual content height (header + limits + optional
+    // graph + footer) and asks us to fit. Without this, the window stays at
+    // 320px and clips the graph + footer when many limits are present.
+    if (!widgetWindow || widgetWindow.isDestroyed()) return;
+    if (cfg.layout === 'minimal') return;
+    const [wx, wy] = widgetWindow.getPosition();
+    const [ww] = widgetWindow.getSize();
+    const target = Math.max(120, Math.min(900, Math.round(h)));
+    widgetWindow.setBounds({ x: wx, y: wy, width: ww, height: target });
+  });
   ipcMain.handle('settings:open', () => createSettings());
   ipcMain.handle('settings:close', () => settingsWindow?.close());
   ipcMain.handle('app:quit', () => { app.isQuitting = true; app.quit(); });
@@ -353,7 +364,12 @@ function applyConfig() {
   if (cfg.layout === 'minimal') {
     widgetWindow.setBounds({ x, y, width: MINIMAL_SIZE.width, height: MINIMAL_SIZE.height });
   } else {
-    widgetWindow.setBounds({ x, y, width: cfg.size.width, height: 320 });
+    // Only seed a height when coming back from the pill (current height is the
+    // 44px minimal box). Otherwise leave height alone — the renderer's
+    // ResizeObserver will fit the window to actual content on the next paint.
+    const [, curH] = widgetWindow.getSize();
+    const height = curH < 120 ? 320 : curH;
+    widgetWindow.setBounds({ x, y, width: cfg.size.width, height });
   }
 }
 
