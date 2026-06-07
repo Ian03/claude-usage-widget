@@ -120,6 +120,8 @@ npm run icons            # regenerate the tray + window icons
 npm run demo-gif         # regenerate assets/demo.gif (main demo)
 npm run pill-gif         # regenerate assets/demo-pill.gif (minimal mode demo)
 npm run layouts-png      # regenerate assets/layouts.png (layout comparison)
+npm run trays-png        # regenerate assets/trays.png (tray icon styles)
+npm run themes-png       # regenerate assets/themes.png (dark vs light)
 npm run og-image         # regenerate the 1280x640 social-preview PNG
 npm run build            # portable EXE in dist/
 npm run build:installer  # NSIS one-click installer in dist/
@@ -150,6 +152,10 @@ Plus: always-on-top, optional click-through (let clicks pass through the widget)
 
 ### Look
 
+<p align="center">
+  <img src="assets/themes.png" width="640" alt="The widget rendered in Dark and Light themes side by side, showing the same data with different surface colors." />
+</p>
+
 - **Theme:** System / Dark / Light, follows OS by default.
 - **Accent color:** pick any hex — recolors the bars, dots, and gauge.
 - **Opacity:** 40 – 100 % so the widget can sit unobtrusively over other windows.
@@ -158,6 +164,10 @@ Plus: always-on-top, optional click-through (let clicks pass through the widget)
 - **Background blur:** toggle the glass-blur backdrop on systems where it's expensive.
 
 ### Tray icon
+
+<p align="center">
+  <img src="assets/trays.png" width="720" alt="Five tray icon styles side by side: Bars (three stacked bars), Battery (fill level), Gauge (circular progress), Minimal (solid dot), and Dynamic (gauge tinted by live severity)." />
+</p>
 
 Five styles, all redraw live as your usage changes:
 
@@ -232,6 +242,8 @@ scripts/
   build-demo-gif.js     Headless Electron capture + gifenc → assets/demo.gif
   build-pill-gif.js     Same pattern → assets/demo-pill.gif (minimal mode)
   build-layouts-png.js  Side-by-side layout showcase → assets/layouts.png
+  build-trays-png.js    Five tray icon styles, captioned → assets/trays.png
+  build-themes-png.js   Dark vs light theme comparison → assets/themes.png
   build-og-image.js     Headless Electron capture → assets/og-image.png (social card)
 .github/
   workflows/release.yml        Builds the portable EXE on tag push

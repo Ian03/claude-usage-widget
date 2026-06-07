@@ -12,6 +12,8 @@
     "pill-gif": "node scripts/build-pill-gif.js",
     "og-image": "node scripts/build-og-image.js",
     "layouts-png": "node scripts/build-layouts-png.js",
+    "trays-png": "node scripts/build-trays-png.js",
+    "themes-png": "node scripts/build-themes-png.js",
     "build": "electron-builder --win portable --publish never",
     "build:installer": "electron-builder --win nsis --publish never",
     "build:mac": "electron-builder --mac --publish never",
