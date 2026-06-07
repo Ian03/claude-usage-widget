@@ -94,23 +94,24 @@
   .mascot-sweat {
     display: none;
     position: absolute;
-    top: -10px;
-    left: 28px;
-    width: 8px; height: 12px;
-    background: #4fb6ff;
-    border-radius: 50% 50% 50% 0;
-    transform: rotate(135deg);
-    box-shadow: inset -1px -1px 0 rgba(0,0,0,0.15), 0 0 3px rgba(79,182,255,0.4);
+    top: -12px;
+    left: 30px;
+    width: 9px;
+    height: 13px;
     pointer-events: none;
+    filter: drop-shadow(0 0 1.5px rgba(94, 192, 255, 0.5));
   }
   .card[data-mood="warn"] .mascot-sweat {
     display: block;
-    animation: sweat-drop 1.6s ease-in-out infinite;
+    animation: sweat-drip 1.8s ease-in-out infinite;
+    transform-origin: 50% 0%;
   }
-  @keyframes sweat-drop {
-    0%, 100% { transform: rotate(135deg) translate(0, -4px) scale(0.5); opacity: 0; }
-    20%      { transform: rotate(135deg) translate(0, 0)    scale(1);   opacity: 1; }
-    80%      { transform: rotate(135deg) translate(4px, 10px) scale(1); opacity: 1; }
+  @keyframes sweat-drip {
+    0%   { transform: translate(0, -4px) scale(0.3); opacity: 0; }
+    18%  { transform: translate(0, 0)    scale(1);   opacity: 1; }
+    60%  { transform: translate(0, 0)    scale(1);   opacity: 1; }
+    85%  { transform: translate(2px, 10px) scale(1.05); opacity: 1; }
+    100% { transform: translate(3px, 18px) scale(1.1);  opacity: 0; }
   }
 
   /* Critical — panic skip + floating panic marks */
@@ -286,7 +287,18 @@
         <div class="mascot-msg" hidden></div>
         <div class="mascot-walk">
           <span class="panic-mark">!</span><span class="panic-mark">!</span><span class="panic-mark">!</span>
-          <div class="mascot-sweat" aria-hidden="true"></div>
+          <svg class="mascot-sweat" viewBox="0 0 10 14" width="9" height="13" aria-hidden="true">
+            <defs>
+              <radialGradient id="sweat-grad-warn" cx="0.35" cy="0.7" r="0.55">
+                <stop offset="0%"  stop-color="#e6f4ff"/>
+                <stop offset="55%" stop-color="#5ec0ff"/>
+                <stop offset="100%" stop-color="#1e7fc8"/>
+              </radialGradient>
+            </defs>
+            <path d="M 5 0.5 Q 1 7 1 10 A 4 4 0 0 0 9 10 Q 9 7 5 0.5 Z"
+                  fill="url(#sweat-grad-warn)" stroke="#1e7fc8" stroke-width="0.4"/>
+            <ellipse cx="3.5" cy="9" rx="0.9" ry="1.4" fill="#fff" opacity="0.55"/>
+          </svg>
           <div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
             <rect class="body" x="1" y="0" width="12" height="8" fill="currentColor"/>
             <rect class="bump" x="0" y="2" width="1" height="4" fill="currentColor"/>
@@ -312,7 +324,18 @@
         <div class="mascot-msg" hidden></div>
         <div class="mascot-walk">
           <span class="panic-mark">!</span><span class="panic-mark">!</span><span class="panic-mark">!</span>
-          <div class="mascot-sweat" aria-hidden="true"></div>
+          <svg class="mascot-sweat" viewBox="0 0 10 14" width="9" height="13" aria-hidden="true">
+            <defs>
+              <radialGradient id="sweat-grad-warn" cx="0.35" cy="0.7" r="0.55">
+                <stop offset="0%"  stop-color="#e6f4ff"/>
+                <stop offset="55%" stop-color="#5ec0ff"/>
+                <stop offset="100%" stop-color="#1e7fc8"/>
+              </radialGradient>
+            </defs>
+            <path d="M 5 0.5 Q 1 7 1 10 A 4 4 0 0 0 9 10 Q 9 7 5 0.5 Z"
+                  fill="url(#sweat-grad-warn)" stroke="#1e7fc8" stroke-width="0.4"/>
+            <ellipse cx="3.5" cy="9" rx="0.9" ry="1.4" fill="#fff" opacity="0.55"/>
+          </svg>
           <div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
             <rect class="body" x="1" y="0" width="12" height="8" fill="currentColor"/>
             <rect class="bump" x="0" y="2" width="1" height="4" fill="currentColor"/>
@@ -338,7 +361,18 @@
         <div class="mascot-msg" hidden></div>
         <div class="mascot-walk">
           <span class="panic-mark">!</span><span class="panic-mark">!</span><span class="panic-mark">!</span>
-          <div class="mascot-sweat" aria-hidden="true"></div>
+          <svg class="mascot-sweat" viewBox="0 0 10 14" width="9" height="13" aria-hidden="true">
+            <defs>
+              <radialGradient id="sweat-grad-warn" cx="0.35" cy="0.7" r="0.55">
+                <stop offset="0%"  stop-color="#e6f4ff"/>
+                <stop offset="55%" stop-color="#5ec0ff"/>
+                <stop offset="100%" stop-color="#1e7fc8"/>
+              </radialGradient>
+            </defs>
+            <path d="M 5 0.5 Q 1 7 1 10 A 4 4 0 0 0 9 10 Q 9 7 5 0.5 Z"
+                  fill="url(#sweat-grad-warn)" stroke="#1e7fc8" stroke-width="0.4"/>
+            <ellipse cx="3.5" cy="9" rx="0.9" ry="1.4" fill="#fff" opacity="0.55"/>
+          </svg>
           <div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
             <rect class="body" x="1" y="0" width="12" height="8" fill="currentColor"/>
             <rect class="bump" x="0" y="2" width="1" height="4" fill="currentColor"/>
@@ -364,7 +398,18 @@
         <div class="mascot-msg" hidden></div>
         <div class="mascot-walk">
           <span class="panic-mark">!</span><span class="panic-mark">!</span><span class="panic-mark">!</span>
-          <div class="mascot-sweat" aria-hidden="true"></div>
+          <svg class="mascot-sweat" viewBox="0 0 10 14" width="9" height="13" aria-hidden="true">
+            <defs>
+              <radialGradient id="sweat-grad-warn" cx="0.35" cy="0.7" r="0.55">
+                <stop offset="0%"  stop-color="#e6f4ff"/>
+                <stop offset="55%" stop-color="#5ec0ff"/>
+                <stop offset="100%" stop-color="#1e7fc8"/>
+              </radialGradient>
+            </defs>
+            <path d="M 5 0.5 Q 1 7 1 10 A 4 4 0 0 0 9 10 Q 9 7 5 0.5 Z"
+                  fill="url(#sweat-grad-warn)" stroke="#1e7fc8" stroke-width="0.4"/>
+            <ellipse cx="3.5" cy="9" rx="0.9" ry="1.4" fill="#fff" opacity="0.55"/>
+          </svg>
           <div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
             <rect class="body" x="1" y="0" width="12" height="8" fill="currentColor"/>
             <rect class="bump" x="0" y="2" width="1" height="4" fill="currentColor"/>
