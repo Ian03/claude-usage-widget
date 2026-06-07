@@ -30,6 +30,12 @@ const PHASE_DELAY_MS = 300;
 
 app.disableHardwareAcceleration();
 
+// EPIPE-proof logging: if stdout is closed (e.g., the script was launched in
+// a backgrounded shell that buffered out), don't crash the Electron main
+// process — just swallow.
+const log = (...args) => { try { console.log(...args); } catch (_) {} };
+process.stdout?.on?.('error', () => {});
+
 async function capture() {
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 
@@ -48,7 +54,25 @@ async function capture() {
 
   const full = await win.webContents.capturePage();
   fs.writeFileSync(path.join(OUTPUT_DIR, 'all-moods.png'), full.toPNG());
-  console.log('wrote all-moods.png');
+  log('wrote all-moods.png');
+
+  // Tightly-cropped grid for the README hero image. assets/claw-d.png is
+  // NOT gitignored (mascot-preview/ is) so this one ships with the repo.
+  const gridBox = await win.webContents.executeJavaScript(`
+    (() => {
+      const g = document.querySelector('.grid');
+      const r = g.getBoundingClientRect();
+      return {
+        x: Math.max(0, Math.floor(r.x) - 24),
+        y: Math.max(0, Math.floor(r.y) - 60),  // include the title above
+        width:  Math.ceil(r.width) + 48,
+        height: Math.ceil(r.height) + 80,
+      };
+    })();
+  `);
+  const gridImg = await win.webContents.capturePage(gridBox);
+  fs.writeFileSync(path.join(__dirname, '..', 'assets', 'claw-d.png'), gridImg.toPNG());
+  log('wrote ../assets/claw-d.png');
 
   const cards = await win.webContents.executeJavaScript(`
     Array.from(document.querySelectorAll('.card')).map((el) => {
@@ -69,7 +93,7 @@ async function capture() {
       });
       const filename = `${card.mood}-${i}.png`;
       fs.writeFileSync(path.join(OUTPUT_DIR, filename), img.toPNG());
-      console.log(`wrote ${filename}`);
+      log(`wrote ${filename}`);
     }
   }
 

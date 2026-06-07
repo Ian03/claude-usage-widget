@@ -22,6 +22,7 @@ The same bars as **Settings → Usage** on claude.ai, plus things they don't:
 - An optional 7-day SVG history graph for any limit you pick
 - Threshold notifications and shell hooks that fire when a limit resets
 - A **pill / minimal mode** that collapses the widget to a tiny ~156×44 capsule showing just the worst-utilized limit %, ideal for non-developers who want ambient awareness without giving up screen real estate
+- **Claw'd**, a pixel-art crab mascot that walks the widget's bottom edge and reacts to your usage — strolls when you're fine, panic-skips with "!" marks at critical, sleeps with floating Zs when rate-limited, and gets grumpy if you click him while he's napping
 
 ## How it's different
 
@@ -125,6 +126,7 @@ npm run themes-png       # regenerate assets/themes.png (dark vs light)
 npm run thresholds-png   # regenerate assets/thresholds.png (OK / warn / critical)
 npm run history-png      # regenerate assets/history.png (7-day graph showcase)
 npm run settings-png     # regenerate assets/settings.png (full settings panel)
+npm run mascot-preview   # regenerate assets/claw-d.png + per-mood capture frames
 npm run og-image         # regenerate the 1280x640 social-preview PNG
 npm run build            # portable EXE in dist/
 npm run build:installer  # NSIS one-click installer in dist/
@@ -192,6 +194,31 @@ Five styles, all redraw live as your usage changes:
 
 Toggle on/off. Pick any single limit to plot (all-models, Sonnet, Opus, session, or extra) — 7 days of samples, drawn as a smooth SVG sparkline inside the widget body.
 
+### Claw'd, the resident crab
+
+<p align="center">
+  <img src="assets/claw-d.png" width="900" alt="Four panels showing Claw'd in each mood: ok (orange, casual stroll), warn (yellow with a blue sweat drop above his head), critical (red with red exclamation marks floating up), and paused (grey, slumped over with a floating cyan Z above his head)." />
+</p>
+
+A pixel-art crab inspired by the Claude mascot, recreated as a tiny SVG that ships with the code (no bundled assets). He walks back and forth along the widget's bottom edge and his mood mirrors your worst limit:
+
+| Mood | Trigger | What he does |
+|---|---|---|
+| **ok** | worst limit < 75% | Casual 14-second stroll. Anthropic orange. |
+| **warn** | 75% – 90% | Hurried 8-second trot with a side-to-side wiggle. Tinted with your `--warn` color. A blue sweat drop beads above his head. |
+| **critical** | ≥ 90% | Panic-skip — 4-second fast run with intermittent anxious jumps and body tilt. Tinted with `--critical`. Three red "!" marks float up and fade. |
+| **paused** | rate-limited ≥ 2 min | Asleep. Body slumped at -22°, eyes closed as thin lines, slow breathing, three staggered Zs (small → large) drift up from his head. |
+
+He also reacts to interaction:
+
+- **Click him** to make him hop (squish-jump-land in 0.45s).
+- **Click him while he's sleeping** and you get a random grumpy speech bubble (`"5 more minutes…"`, `"Hmph."`, `"Rude."`, etc.) instead of a hop. He goes back to sleep after 2 seconds.
+- When a quota actually resets, he stops walking and waves side-to-side for ~1.6s before resuming.
+
+Toggle him on/off in **Settings → Layout → "Show Claw'd"**. Hidden automatically in pill and essential layouts where there's no room.
+
+Open [`assets/claw-d-states.html`](assets/claw-d-states.html) in a browser to see all four moods animating side-by-side with interactive buttons — no app launch required.
+
 ### Thresholds & notifications
 
 <p align="center">
@@ -249,6 +276,8 @@ renderer/
   settings.html / .css / .js   Live-editing settings panel
   demo.html                    Self-contained widget clone for GIF capture
   demo-pill.html               Self-contained pill-mode clone for the pill GIF
+assets/
+  claw-d-states.html           Self-contained Claw'd mood preview (open in any browser)
 tests/
   normalize.test.js   Snapshot tests against the live response shape
 scripts/
@@ -262,6 +291,7 @@ scripts/
   build-thresholds-png.js  OK/warn/critical severity comparison → assets/thresholds.png
   build-history-png.js     Widget + 7-day history graph → assets/history.png
   build-settings-png.js    Two-column shot of the live settings panel → assets/settings.png
+  capture-mascot-preview.js  Headless Electron capture → assets/claw-d.png + per-mood frames
   build-og-image.js     Headless Electron capture → assets/og-image.png (social card)
 .github/
   workflows/release.yml        Builds the portable EXE on tag push
