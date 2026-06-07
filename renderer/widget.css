@@ -14,13 +14,21 @@
 }
 
 [data-theme="light"] {
-  --bg: rgba(255, 255, 255, 0.94);
+  --bg: #ffffff;
   --bg-solid: #ffffff;
-  --fg: #1a1a1d;
+  --fg: #0f1419;
   --fg-dim: #5f6368;
   --border: rgba(0, 0, 0, 0.08);
   --track: rgba(0, 0, 0, 0.07);
 }
+
+/* Light mode tweaks: the dark drop shadow read as a "dirty grey" halo against
+   light desktops, and the 600-weight title felt thin once stacked translucency
+   (widget bg × window opacity) faded it. Soften the shadow, bolden the title. */
+[data-theme="light"] .widget {
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+[data-theme="light"] .title { font-weight: 700; }
 
 * { box-sizing: border-box; }
 html, body {

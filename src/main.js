@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage, screen, powerMonitor, Notification, shell, nativeTheme } = require('electron');
+const { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage, screen, powerMonitor, Notification, shell, nativeTheme, dialog } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
 const config = require('./config');
@@ -185,7 +185,16 @@ function rebuildTrayMenu() {
       label: 'Click-through',
       type: 'checkbox',
       checked: cfg.clickThrough,
-      click: (item) => { cfg.clickThrough = item.checked; widgetWindow?.setIgnoreMouseEvents(cfg.clickThrough, { forward: true }); config.save(cfg); },
+      click: async (item) => {
+        if (item.checked && !cfg.clickThrough) {
+          const ok = await confirmEnableClickThrough();
+          if (!ok) { rebuildTrayMenu(); return; }
+        }
+        cfg.clickThrough = item.checked;
+        widgetWindow?.setIgnoreMouseEvents(cfg.clickThrough, { forward: true });
+        config.save(cfg);
+        broadcast('config:changed', cfg);
+      },
     },
     {
       label: 'Start with Windows',
@@ -236,6 +245,21 @@ function checkNotifications(usage) {
 function notify(title, body) {
   if (!Notification.isSupported()) return;
   new Notification({ title, body, silent: false }).show();
+}
+
+async function confirmEnableClickThrough() {
+  const { response } = await dialog.showMessageBox({
+    type: 'warning',
+    buttons: ['Cancel', 'Enable click-through'],
+    defaultId: 0,
+    cancelId: 0,
+    title: 'Enable click-through?',
+    message: 'Click-through makes the widget invisible to mouse clicks.',
+    detail:
+      "While it's on, you won't be able to drag the widget, click its buttons, or close it — clicks pass straight through to whatever is underneath.\n\n" +
+      "To turn it back off, right-click the tray icon and uncheck Click-through.\n\nContinue?",
+  });
+  return response === 1;
 }
 
 function runResetHook(reset) {
@@ -313,7 +337,14 @@ app.whenReady().then(() => {
   powerMonitor.on('unlock-screen', () => poller?.notifyWake());
 
   ipcMain.handle('config:get', () => cfg);
-  ipcMain.handle('config:update', (_evt, patch) => {
+  ipcMain.handle('config:update', async (_evt, patch) => {
+    // Surface a confirmation when click-through is being turned on, since
+    // once it's enabled the widget becomes unclickable and the only recovery
+    // path is the tray menu — an easy panic moment for a non-technical user.
+    if (patch && patch.clickThrough === true && !cfg.clickThrough) {
+      const ok = await confirmEnableClickThrough();
+      if (!ok) patch = { ...patch, clickThrough: false };
+    }
     const oldStyle = cfg.trayIconStyle;
     const oldAccent = cfg.accentColor;
     cfg = deepMerge(cfg, patch);
