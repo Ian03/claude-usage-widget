@@ -94,12 +94,13 @@
   .mascot-sweat {
     display: none;
     position: absolute;
-    top: 4px;
-    left: 34px;
-    width: 4px; height: 6px;
-    background: #5eaaf0;
-    border-radius: 100% 100% 100% 0;
-    transform: rotate(180deg);
+    top: -10px;
+    left: 28px;
+    width: 8px; height: 12px;
+    background: #4fb6ff;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(135deg);
+    box-shadow: inset -1px -1px 0 rgba(0,0,0,0.15), 0 0 3px rgba(79,182,255,0.4);
     pointer-events: none;
   }
   .card[data-mood="warn"] .mascot-sweat {
@@ -107,9 +108,9 @@
     animation: sweat-drop 1.6s ease-in-out infinite;
   }
   @keyframes sweat-drop {
-    0%, 100% { transform: rotate(180deg) translateY(-2px) scale(0.6); opacity: 0; }
-    20%      { transform: rotate(180deg) translateY(0)    scale(1);   opacity: 1; }
-    80%      { transform: rotate(180deg) translateY(8px)  scale(1);   opacity: 1; }
+    0%, 100% { transform: rotate(135deg) translate(0, -4px) scale(0.5); opacity: 0; }
+    20%      { transform: rotate(135deg) translate(0, 0)    scale(1);   opacity: 1; }
+    80%      { transform: rotate(135deg) translate(4px, 10px) scale(1); opacity: 1; }
   }
 
   /* Critical — panic skip + floating panic marks */
@@ -133,20 +134,21 @@
   .panic-mark {
     display: none;
     position: absolute;
-    width: 2px; height: 6px;
-    background: var(--mascot-color);
-    border-radius: 1px;
+    font: 900 13px/1 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: var(--mascot-color);
+    text-shadow: 0 0 1px rgba(0,0,0,0.4);
     pointer-events: none;
+    user-select: none;
   }
   .card[data-mood="critical"] .panic-mark { display: block; }
-  .panic-mark:nth-child(1) { top: -10px; left: 12px; animation: panic-rise 0.7s linear infinite; }
-  .panic-mark:nth-child(2) { top: -6px;  left: 24px; animation: panic-rise 0.6s linear infinite 0.25s; }
-  .panic-mark:nth-child(3) { top: -8px;  left: 18px; animation: panic-rise 0.8s linear infinite 0.45s; }
+  .panic-mark:nth-child(1) { top: -16px; left: 10px; animation: panic-rise 0.7s ease-out infinite; }
+  .panic-mark:nth-child(2) { top: -12px; left: 24px; animation: panic-rise 0.6s ease-out infinite 0.25s; }
+  .panic-mark:nth-child(3) { top: -14px; left: 17px; animation: panic-rise 0.8s ease-out infinite 0.45s; }
   @keyframes panic-rise {
-    0%   { transform: translate(0, 0)       rotate(-15deg); opacity: 0; }
-    15%  { transform: translate(-1px, -1px) rotate(15deg);  opacity: 1; }
-    55%  { transform: translate(2px,  -5px) rotate(-15deg); opacity: 1; }
-    100% { transform: translate(0,   -12px) rotate(10deg);  opacity: 0; }
+    0%   { transform: translate(0, 4px)    rotate(-15deg) scale(0.6); opacity: 0; }
+    20%  { transform: translate(-1px, 0)   rotate(10deg)  scale(1);   opacity: 1; }
+    60%  { transform: translate(2px, -8px) rotate(-12deg) scale(1);   opacity: 1; }
+    100% { transform: translate(0, -16px)  rotate(8deg)   scale(0.8); opacity: 0; }
   }
 
   /* Paused — sleeping with closed-eye lines + ZZZ; click for grumpy */
@@ -163,14 +165,11 @@
     0%, 100% { transform: translateY(0)    scale(1); }
     50%      { transform: translateY(-1px) scale(1.03); }
   }
-  /* Closed-eye lines via SVG2 geometry override (not display:none, so the
-     eyes stay visible as short horizontal dashes). */
-  .card[data-mood="paused"] .mascot:not(.grumpy) svg rect:nth-of-type(4) {
-    x: 3; y: 3; width: 2; height: 1;
-  }
-  .card[data-mood="paused"] .mascot:not(.grumpy) svg rect:nth-of-type(5) {
-    x: 9; y: 3; width: 2; height: 1;
-  }
+  /* Sleeping eyes — dedicated <line> elements with round caps so they
+     read as proper closed slits, not 1px noise. */
+  .mascot svg .eye-shut { display: none; }
+  .card[data-mood="paused"] .mascot:not(.grumpy) svg .eye { display: none; }
+  .card[data-mood="paused"] .mascot:not(.grumpy) svg .eye-shut { display: inline; }
 
   /* ZZZ */
   .mascot-zzz {
@@ -286,18 +285,20 @@
         <div class="mascot-zzz" aria-hidden="true">z</div>
         <div class="mascot-msg" hidden></div>
         <div class="mascot-walk">
-          <span class="panic-mark"></span><span class="panic-mark"></span><span class="panic-mark"></span>
+          <span class="panic-mark">!</span><span class="panic-mark">!</span><span class="panic-mark">!</span>
           <div class="mascot-sweat" aria-hidden="true"></div>
           <div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
-            <rect x="1" y="0" width="12" height="8" fill="currentColor"/>
-            <rect x="0" y="2" width="1" height="4" fill="currentColor"/>
-            <rect x="13" y="2" width="1" height="4" fill="currentColor"/>
-            <rect x="3" y="2" width="1" height="2" fill="#000"/>
-            <rect x="10" y="2" width="1" height="2" fill="#000"/>
-            <rect x="2" y="8" width="1" height="3" fill="currentColor"/>
-            <rect x="5" y="8" width="1" height="3" fill="currentColor"/>
-            <rect x="8" y="8" width="1" height="3" fill="currentColor"/>
-            <rect x="11" y="8" width="1" height="3" fill="currentColor"/>
+            <rect class="body" x="1" y="0" width="12" height="8" fill="currentColor"/>
+            <rect class="bump" x="0" y="2" width="1" height="4" fill="currentColor"/>
+            <rect class="bump" x="13" y="2" width="1" height="4" fill="currentColor"/>
+            <rect class="eye" x="3" y="2" width="1" height="2" fill="#000"/>
+            <rect class="eye" x="10" y="2" width="1" height="2" fill="#000"/>
+            <line class="eye-shut" x1="2.2" y1="3.2" x2="5" y2="3.2" stroke="#000" stroke-width="0.8" stroke-linecap="round"/>
+            <line class="eye-shut" x1="9" y1="3.2" x2="11.8" y2="3.2" stroke="#000" stroke-width="0.8" stroke-linecap="round"/>
+            <rect class="leg" x="2" y="8" width="1" height="3" fill="currentColor"/>
+            <rect class="leg" x="5" y="8" width="1" height="3" fill="currentColor"/>
+            <rect class="leg" x="8" y="8" width="1" height="3" fill="currentColor"/>
+            <rect class="leg" x="11" y="8" width="1" height="3" fill="currentColor"/>
           </svg></div>
         </div>
       </div>
@@ -310,18 +311,20 @@
         <div class="mascot-zzz" aria-hidden="true">z</div>
         <div class="mascot-msg" hidden></div>
         <div class="mascot-walk">
-          <span class="panic-mark"></span><span class="panic-mark"></span><span class="panic-mark"></span>
+          <span class="panic-mark">!</span><span class="panic-mark">!</span><span class="panic-mark">!</span>
           <div class="mascot-sweat" aria-hidden="true"></div>
           <div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
-            <rect x="1" y="0" width="12" height="8" fill="currentColor"/>
-            <rect x="0" y="2" width="1" height="4" fill="currentColor"/>
-            <rect x="13" y="2" width="1" height="4" fill="currentColor"/>
-            <rect x="3" y="2" width="1" height="2" fill="#000"/>
-            <rect x="10" y="2" width="1" height="2" fill="#000"/>
-            <rect x="2" y="8" width="1" height="3" fill="currentColor"/>
-            <rect x="5" y="8" width="1" height="3" fill="currentColor"/>
-            <rect x="8" y="8" width="1" height="3" fill="currentColor"/>
-            <rect x="11" y="8" width="1" height="3" fill="currentColor"/>
+            <rect class="body" x="1" y="0" width="12" height="8" fill="currentColor"/>
+            <rect class="bump" x="0" y="2" width="1" height="4" fill="currentColor"/>
+            <rect class="bump" x="13" y="2" width="1" height="4" fill="currentColor"/>
+            <rect class="eye" x="3" y="2" width="1" height="2" fill="#000"/>
+            <rect class="eye" x="10" y="2" width="1" height="2" fill="#000"/>
+            <line class="eye-shut" x1="2.2" y1="3.2" x2="5" y2="3.2" stroke="#000" stroke-width="0.8" stroke-linecap="round"/>
+            <line class="eye-shut" x1="9" y1="3.2" x2="11.8" y2="3.2" stroke="#000" stroke-width="0.8" stroke-linecap="round"/>
+            <rect class="leg" x="2" y="8" width="1" height="3" fill="currentColor"/>
+            <rect class="leg" x="5" y="8" width="1" height="3" fill="currentColor"/>
+            <rect class="leg" x="8" y="8" width="1" height="3" fill="currentColor"/>
+            <rect class="leg" x="11" y="8" width="1" height="3" fill="currentColor"/>
           </svg></div>
         </div>
       </div>
@@ -334,18 +337,20 @@
         <div class="mascot-zzz" aria-hidden="true">z</div>
         <div class="mascot-msg" hidden></div>
         <div class="mascot-walk">
-          <span class="panic-mark"></span><span class="panic-mark"></span><span class="panic-mark"></span>
+          <span class="panic-mark">!</span><span class="panic-mark">!</span><span class="panic-mark">!</span>
           <div class="mascot-sweat" aria-hidden="true"></div>
           <div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
-            <rect x="1" y="0" width="12" height="8" fill="currentColor"/>
-            <rect x="0" y="2" width="1" height="4" fill="currentColor"/>
-            <rect x="13" y="2" width="1" height="4" fill="currentColor"/>
-            <rect x="3" y="2" width="1" height="2" fill="#000"/>
-            <rect x="10" y="2" width="1" height="2" fill="#000"/>
-            <rect x="2" y="8" width="1" height="3" fill="currentColor"/>
-            <rect x="5" y="8" width="1" height="3" fill="currentColor"/>
-            <rect x="8" y="8" width="1" height="3" fill="currentColor"/>
-            <rect x="11" y="8" width="1" height="3" fill="currentColor"/>
+            <rect class="body" x="1" y="0" width="12" height="8" fill="currentColor"/>
+            <rect class="bump" x="0" y="2" width="1" height="4" fill="currentColor"/>
+            <rect class="bump" x="13" y="2" width="1" height="4" fill="currentColor"/>
+            <rect class="eye" x="3" y="2" width="1" height="2" fill="#000"/>
+            <rect class="eye" x="10" y="2" width="1" height="2" fill="#000"/>
+            <line class="eye-shut" x1="2.2" y1="3.2" x2="5" y2="3.2" stroke="#000" stroke-width="0.8" stroke-linecap="round"/>
+            <line class="eye-shut" x1="9" y1="3.2" x2="11.8" y2="3.2" stroke="#000" stroke-width="0.8" stroke-linecap="round"/>
+            <rect class="leg" x="2" y="8" width="1" height="3" fill="currentColor"/>
+            <rect class="leg" x="5" y="8" width="1" height="3" fill="currentColor"/>
+            <rect class="leg" x="8" y="8" width="1" height="3" fill="currentColor"/>
+            <rect class="leg" x="11" y="8" width="1" height="3" fill="currentColor"/>
           </svg></div>
         </div>
       </div>
@@ -358,18 +363,20 @@
         <div class="mascot-zzz" aria-hidden="true">z</div>
         <div class="mascot-msg" hidden></div>
         <div class="mascot-walk">
-          <span class="panic-mark"></span><span class="panic-mark"></span><span class="panic-mark"></span>
+          <span class="panic-mark">!</span><span class="panic-mark">!</span><span class="panic-mark">!</span>
           <div class="mascot-sweat" aria-hidden="true"></div>
           <div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
-            <rect x="1" y="0" width="12" height="8" fill="currentColor"/>
-            <rect x="0" y="2" width="1" height="4" fill="currentColor"/>
-            <rect x="13" y="2" width="1" height="4" fill="currentColor"/>
-            <rect x="3" y="2" width="1" height="2" fill="#000"/>
-            <rect x="10" y="2" width="1" height="2" fill="#000"/>
-            <rect x="2" y="8" width="1" height="3" fill="currentColor"/>
-            <rect x="5" y="8" width="1" height="3" fill="currentColor"/>
-            <rect x="8" y="8" width="1" height="3" fill="currentColor"/>
-            <rect x="11" y="8" width="1" height="3" fill="currentColor"/>
+            <rect class="body" x="1" y="0" width="12" height="8" fill="currentColor"/>
+            <rect class="bump" x="0" y="2" width="1" height="4" fill="currentColor"/>
+            <rect class="bump" x="13" y="2" width="1" height="4" fill="currentColor"/>
+            <rect class="eye" x="3" y="2" width="1" height="2" fill="#000"/>
+            <rect class="eye" x="10" y="2" width="1" height="2" fill="#000"/>
+            <line class="eye-shut" x1="2.2" y1="3.2" x2="5" y2="3.2" stroke="#000" stroke-width="0.8" stroke-linecap="round"/>
+            <line class="eye-shut" x1="9" y1="3.2" x2="11.8" y2="3.2" stroke="#000" stroke-width="0.8" stroke-linecap="round"/>
+            <rect class="leg" x="2" y="8" width="1" height="3" fill="currentColor"/>
+            <rect class="leg" x="5" y="8" width="1" height="3" fill="currentColor"/>
+            <rect class="leg" x="8" y="8" width="1" height="3" fill="currentColor"/>
+            <rect class="leg" x="11" y="8" width="1" height="3" fill="currentColor"/>
           </svg></div>
         </div>
       </div>

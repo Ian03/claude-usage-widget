@@ -281,17 +281,12 @@ header.drag {
   0%, 100% { transform: translateY(0)    scale(1); }
   50%      { transform: translateY(-1px) scale(1.03); }
 }
-/* Eyes closed while asleep — instead of hiding the eye rects (which left
-   nothing readable), reshape them into short horizontal lines via SVG2 CSS
-   geometry attributes. The two eyes are the 4th and 5th <rect> in the SVG.
-   When grumpy is added (click while paused), the override is skipped so
-   eyes pop back open — angry awake stare. */
-.widget[data-mascot-mood="paused"] .mascot:not(.grumpy) svg rect:nth-of-type(4) {
-  x: 3; y: 3; width: 2; height: 1;
-}
-.widget[data-mascot-mood="paused"] .mascot:not(.grumpy) svg rect:nth-of-type(5) {
-  x: 9; y: 3; width: 2; height: 1;
-}
+/* Sleeping eyes use dedicated <line> elements with rounded caps so they
+   read as obvious slits, not 1px noise. Toggle via class so when grumpy
+   (clicked while paused) the awake rects come back. */
+.mascot svg .eye-shut { display: none; }
+.widget[data-mascot-mood="paused"] .mascot:not(.grumpy) svg .eye { display: none; }
+.widget[data-mascot-mood="paused"] .mascot:not(.grumpy) svg .eye-shut { display: inline; }
 
 /* Sleeping ZZZ follows the body to the center when paused — the body is
    translateX(120px) on .mascot-walk, but the Z lives outside walk so it
@@ -344,39 +339,42 @@ header.drag {
   to   { opacity: 1; transform: translateY(0)   scale(1); }
 }
 
-/* Critical panic indicators — three small wiggly marks float up above his
-   head, staggered. Lives inside .mascot-walk so they translate with his
-   panicked running across the widget. */
+/* Critical panic indicators — bold "!" characters float up above his head,
+   rotated and staggered. Universally reads as panic, where the earlier
+   abstract sticks were unidentifiable. Lives inside .mascot-walk so they
+   travel with him as he scrambles. */
 .panic-mark {
   display: none;
   position: absolute;
-  width: 2px; height: 6px;
-  background: var(--mascot-color, var(--critical));
-  border-radius: 1px;
+  font: 900 13px/1 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--mascot-color, var(--critical));
+  text-shadow: 0 0 1px rgba(0, 0, 0, 0.4);
   pointer-events: none;
+  user-select: none;
 }
 .widget[data-mascot-mood="critical"] .panic-mark { display: block; }
-.panic-mark:nth-child(1) { top: -10px; left: 12px; animation: panic-rise 0.7s linear infinite; }
-.panic-mark:nth-child(2) { top: -6px;  left: 24px; animation: panic-rise 0.6s linear infinite 0.25s; }
-.panic-mark:nth-child(3) { top: -8px;  left: 18px; animation: panic-rise 0.8s linear infinite 0.45s; }
+.panic-mark:nth-child(1) { top: -16px; left: 10px; animation: panic-rise 0.7s ease-out infinite; }
+.panic-mark:nth-child(2) { top: -12px; left: 24px; animation: panic-rise 0.6s ease-out infinite 0.25s; }
+.panic-mark:nth-child(3) { top: -14px; left: 17px; animation: panic-rise 0.8s ease-out infinite 0.45s; }
 @keyframes panic-rise {
-  0%   { transform: translate(0, 0)       rotate(-15deg); opacity: 0; }
-  15%  { transform: translate(-1px, -1px) rotate(15deg);  opacity: 1; }
-  55%  { transform: translate(2px,  -5px) rotate(-15deg); opacity: 1; }
-  100% { transform: translate(0,   -12px) rotate(10deg);  opacity: 0; }
+  0%   { transform: translate(0, 4px)   rotate(-15deg) scale(0.6); opacity: 0; }
+  20%  { transform: translate(-1px, 0)  rotate(10deg)  scale(1);   opacity: 1; }
+  60%  { transform: translate(2px, -8px) rotate(-12deg) scale(1);  opacity: 1; }
+  100% { transform: translate(0, -16px) rotate(8deg)   scale(0.8); opacity: 0; }
 }
 
-/* Warn sweat drop — a single teardrop appears beside his head and slides
-   down, communicating "stressed but not panic". */
+/* Warn sweat drop — much bigger and brighter than v0.2.4 so it actually
+   reads as a sweat bead. Sits above his head, beads in, drips down. */
 .mascot-sweat {
   display: none;
   position: absolute;
-  top: 4px;
-  left: 34px;
-  width: 4px; height: 6px;
-  background: #5eaaf0;
-  border-radius: 100% 100% 100% 0;
-  transform: rotate(180deg);
+  top: -10px;
+  left: 28px;
+  width: 8px; height: 12px;
+  background: #4fb6ff;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(135deg);
+  box-shadow: inset -1px -1px 0 rgba(0, 0, 0, 0.15), 0 0 3px rgba(79, 182, 255, 0.4);
   pointer-events: none;
 }
 .widget[data-mascot-mood="warn"] .mascot-sweat {
@@ -384,9 +382,9 @@ header.drag {
   animation: sweat-drop 1.6s ease-in-out infinite;
 }
 @keyframes sweat-drop {
-  0%, 100% { transform: rotate(180deg) translateY(-2px) scale(0.6); opacity: 0; }
-  20%      { transform: rotate(180deg) translateY(0)    scale(1);   opacity: 1; }
-  80%      { transform: rotate(180deg) translateY(8px)  scale(1);   opacity: 1; }
+  0%, 100% { transform: rotate(135deg) translate(0, -4px) scale(0.5); opacity: 0; }
+  20%      { transform: rotate(135deg) translate(0, 0)    scale(1);   opacity: 1; }
+  80%      { transform: rotate(135deg) translate(4px, 10px) scale(1); opacity: 1; }
 }
 
 /* Floating ZZZ — only visible while paused. Drifts up-right and fades. */
