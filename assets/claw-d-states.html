@@ -75,15 +75,54 @@
   .card[data-mood="ok"]       { --mascot-color: #d7613d; }
   .card[data-mood="ok"]       .mascot-walk { animation-duration: 14s; }
   .card[data-mood="ok"]       .mascot-bob  { animation-duration: 0.5s; }
+
   .card[data-mood="warn"]     { --mascot-color: #F5B400; }
   .card[data-mood="warn"]     .mascot-walk { animation-duration: 8s; }
-  .card[data-mood="warn"]     .mascot-bob  { animation-duration: 0.32s; }
+  .card[data-mood="warn"]     .mascot-bob {
+    animation: claw-trot 0.45s ease-in-out infinite;
+  }
+  @keyframes claw-trot {
+    0%, 100% { transform: translateY(0)    rotate(-1.5deg); }
+    25%      { transform: translateY(-3px) rotate(0deg); }
+    50%      { transform: translateY(0)    rotate(1.5deg); }
+    75%      { transform: translateY(-3px) rotate(0deg); }
+  }
+
   .card[data-mood="critical"] { --mascot-color: #E5484D; }
   .card[data-mood="critical"] .mascot-walk { animation-duration: 4s; }
-  .card[data-mood="critical"] .mascot-bob  { animation-duration: 0.18s; }
+  .card[data-mood="critical"] .mascot-bob {
+    animation: claw-panic 1.05s ease-in-out infinite;
+  }
+  @keyframes claw-panic {
+    0%   { transform: translateY(0)    rotate(0deg); }
+    8%   { transform: translateY(-3px) rotate(-4deg); }
+    16%  { transform: translateY(0)    rotate(0deg); }
+    30%  { transform: translateY(-12px) rotate(8deg); }
+    44%  { transform: translateY(0)    rotate(0deg); }
+    55%  { transform: translateY(-3px) rotate(-4deg); }
+    68%  { transform: translateY(-10px) rotate(-6deg); }
+    82%  { transform: translateY(0)    rotate(0deg); }
+    92%  { transform: translateY(-2px) rotate(3deg); }
+    100% { transform: translateY(0)    rotate(0deg); }
+  }
+
   .card[data-mood="paused"]   { --mascot-color: #9aa0a6; }
-  .card[data-mood="paused"]   .mascot-walk { animation: none; transform: translateX(100px); }
-  .card[data-mood="paused"]   .mascot-bob  { animation-duration: 2.2s; }
+  .card[data-mood="paused"]   .mascot-walk {
+    animation: none;
+    transform: translateX(100px) rotate(-22deg);
+    transform-origin: center bottom;
+  }
+  .card[data-mood="paused"]   .mascot-bob {
+    animation: claw-breathe 2.8s ease-in-out infinite;
+  }
+  @keyframes claw-breathe {
+    0%, 100% { transform: translateY(0)    scale(1); }
+    50%      { transform: translateY(-1px) scale(1.03); }
+  }
+  .card[data-mood="paused"] .mascot svg rect:nth-of-type(4),
+  .card[data-mood="paused"] .mascot svg rect:nth-of-type(5) {
+    display: none;
+  }
 
   /* ZZZ — only paused */
   .mascot-zzz {
@@ -171,7 +210,7 @@
 
     <div class="card" data-mood="warn">
       <div class="label"><b>warn</b><span>75% - 90%</span></div>
-      <div class="desc">Brisk 8-second walk, faster bob. Tinted with your --warn color.</div>
+      <div class="desc">Hurried 8-second trot with a slight side-to-side wiggle. Tinted with your --warn color.</div>
       <div class="mascot" onclick="hop(this)">
         <div class="mascot-zzz" aria-hidden="true">z</div>
         <div class="mascot-walk"><div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
@@ -190,7 +229,7 @@
 
     <div class="card" data-mood="critical">
       <div class="label"><b>critical</b><span>&ge; 90%</span></div>
-      <div class="desc">4-second panic run, frantic bob. Tinted with your --critical color.</div>
+      <div class="desc">Panic skip — 4-second run with intermittent anxious jumps + body tilt. Tinted with your --critical color.</div>
       <div class="mascot" onclick="hop(this)">
         <div class="mascot-zzz" aria-hidden="true">z</div>
         <div class="mascot-walk"><div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
@@ -209,7 +248,7 @@
 
     <div class="card" data-mood="paused">
       <div class="label"><b>paused</b><span>throttled &ge; 2 min</span></div>
-      <div class="desc">Naps in the middle. Slow breathing bob, ZZZ floats up. Dim grey tint.</div>
+      <div class="desc">Asleep — body slumped over at -22 degrees, eyes closed, slow breathing, ZZZ drifts up. Dim grey tint.</div>
       <div class="mascot" onclick="hop(this)">
         <div class="mascot-zzz" aria-hidden="true">z</div>
         <div class="mascot-walk"><div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">

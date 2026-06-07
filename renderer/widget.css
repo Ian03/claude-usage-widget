@@ -223,21 +223,69 @@ header.drag {
   to   { transform: translateY(-2px); }
 }
 
-/* Mood-driven speed + tint. Worst-limit severity sets data-mascot-mood. */
+/* Mood-driven speed, tint, and motion pattern. Each mood gets a distinct
+   bob/jump keyframe so a glance reads as "we're chill" vs "panic" without
+   needing to look at the bars. */
+
+/* OK: casual stroll, gentle bob (default .mascot-bob keyframe above). */
 .widget[data-mascot-mood="ok"]       { --mascot-color: #d7613d; }
 .widget[data-mascot-mood="ok"]       .mascot-walk { animation-duration: 14s; }
 .widget[data-mascot-mood="ok"]       .mascot-bob  { animation-duration: 0.5s; }
+
+/* Warn: hurried trot. Bigger bob, slight side-to-side wiggle. */
 .widget[data-mascot-mood="warn"]     { --mascot-color: var(--warn); }
 .widget[data-mascot-mood="warn"]     .mascot-walk { animation-duration: 8s; }
-.widget[data-mascot-mood="warn"]     .mascot-bob  { animation-duration: 0.32s; }
+.widget[data-mascot-mood="warn"]     .mascot-bob  {
+  animation: claw-trot 0.45s ease-in-out infinite;
+}
+@keyframes claw-trot {
+  0%, 100% { transform: translateY(0)    rotate(-1.5deg); }
+  25%      { transform: translateY(-3px) rotate(0deg); }
+  50%      { transform: translateY(0)    rotate(1.5deg); }
+  75%      { transform: translateY(-3px) rotate(0deg); }
+}
+
+/* Critical: panic skip. Fast steps with periodic big anxious jumps and
+   a body tilt — reads as "running and freaking out". */
 .widget[data-mascot-mood="critical"] { --mascot-color: var(--critical); }
 .widget[data-mascot-mood="critical"] .mascot-walk { animation-duration: 4s; }
-.widget[data-mascot-mood="critical"] .mascot-bob  { animation-duration: 0.18s; }
+.widget[data-mascot-mood="critical"] .mascot-bob  {
+  animation: claw-panic 1.05s ease-in-out infinite;
+}
+@keyframes claw-panic {
+  0%   { transform: translateY(0)    rotate(0deg); }
+  8%   { transform: translateY(-3px) rotate(-4deg); }
+  16%  { transform: translateY(0)    rotate(0deg); }
+  30%  { transform: translateY(-12px) rotate(8deg); }   /* big anxious jump */
+  44%  { transform: translateY(0)    rotate(0deg); }
+  55%  { transform: translateY(-3px) rotate(-4deg); }
+  68%  { transform: translateY(-10px) rotate(-6deg); }  /* another jump */
+  82%  { transform: translateY(0)    rotate(0deg); }
+  92%  { transform: translateY(-2px) rotate(3deg); }
+  100% { transform: translateY(0)    rotate(0deg); }
+}
 
-/* Throttled: Claw'd naps in the middle. Walk stops, breathing slows. */
+/* Paused: actually sleeping. Body slumps over at -22deg with feet planted,
+   slow breathing, eyes hidden so it reads as "fell asleep". */
 .widget[data-mascot-mood="paused"]   { --mascot-color: var(--fg-dim); }
-.widget[data-mascot-mood="paused"]   .mascot-walk { animation: none; transform: translateX(120px); }
-.widget[data-mascot-mood="paused"]   .mascot-bob  { animation-duration: 2.2s; }
+.widget[data-mascot-mood="paused"]   .mascot-walk {
+  animation: none;
+  transform: translateX(120px) rotate(-22deg);
+  transform-origin: center bottom;
+}
+.widget[data-mascot-mood="paused"]   .mascot-bob {
+  animation: claw-breathe 2.8s ease-in-out infinite;
+}
+@keyframes claw-breathe {
+  0%, 100% { transform: translateY(0)    scale(1); }
+  50%      { transform: translateY(-1px) scale(1.03); }
+}
+/* Eyes closed while asleep — hide the two black eye rects (4th + 5th rect
+   in the SVG: body, L-bump, R-bump, L-eye, R-eye, leg1, leg2, leg3, leg4). */
+.widget[data-mascot-mood="paused"] .mascot svg rect:nth-of-type(4),
+.widget[data-mascot-mood="paused"] .mascot svg rect:nth-of-type(5) {
+  display: none;
+}
 
 /* Floating ZZZ — only visible while paused. Drifts up-right and fades. */
 .mascot-zzz {
