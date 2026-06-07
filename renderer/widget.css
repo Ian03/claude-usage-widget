@@ -288,11 +288,14 @@ header.drag {
 .widget[data-mascot-mood="paused"] .mascot:not(.grumpy) svg .eye { display: none; }
 .widget[data-mascot-mood="paused"] .mascot:not(.grumpy) svg .eye-shut { display: inline; }
 
-/* Sleeping ZZZ follows the body to the center when paused — the body is
-   translateX(120px) on .mascot-walk, but the Z lives outside walk so it
-   doesn't rotate with him. Shift its anchor point instead. */
+/* Sleeping ZZZs follow the body to the center when paused — the body is
+   translateX(120px) on .mascot-walk, but the Zs live outside walk so they
+   don't rotate with him. Shift the container so they appear above the
+   slumped head (not above the shoulder where the original single z sat). */
 .widget[data-mascot-mood="paused"] .mascot-zzz {
-  left: 132px;
+  display: block;
+  left: 108px;
+  top: -24px;
 }
 
 /* Click while paused → grumpy: stop the snooze rotation, sit up, body
@@ -370,13 +373,13 @@ header.drag {
 .mascot-sweat {
   display: none;
   position: absolute;
-  top: -16px;
-  left: 22px;
-  width: 13px;
-  height: 17px;
+  top: -22px;
+  left: 19px;
+  width: 18px;
+  height: 24px;
   pointer-events: none;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25))
-          drop-shadow(0 0 2px rgba(94, 192, 255, 0.5));
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.3))
+          drop-shadow(0 0 3px rgba(94, 192, 255, 0.5));
 }
 .widget[data-mascot-mood="warn"] .mascot-sweat {
   display: block;
@@ -387,27 +390,42 @@ header.drag {
   0%   { transform: translate(0, -6px) scale(0.25); opacity: 0; }
   20%  { transform: translate(0, 0)    scale(1);    opacity: 1; }
   65%  { transform: translate(0, 0)    scale(1);    opacity: 1; }
-  90%  { transform: translate(1px, 6px) scale(1.1); opacity: 1; }
-  100% { transform: translate(2px, 12px) scale(1.15); opacity: 0; }
+  90%  { transform: translate(1px, 8px) scale(1.1); opacity: 1; }
+  100% { transform: translate(2px, 16px) scale(1.15); opacity: 0; }
 }
 
-/* Floating ZZZ — only visible while paused. Drifts up-right and fades. */
+/* Floating ZZZs — three staggered z/Z/Z characters drift up and right
+   from above the sleeping head. Brighter cyan-white (not muted grey) and
+   bigger sizes (11/14/17px) so they read on dark backgrounds. */
 .mascot-zzz {
+  display: none;
   position: absolute;
-  top: -2px;
+  top: -22px;
   left: 28px;
-  font: 700 11px/1 ui-sans-serif, system-ui, sans-serif;
-  color: var(--fg-dim);
-  opacity: 0;
+  width: 30px;
+  height: 26px;
   pointer-events: none;
 }
-.widget[data-mascot-mood="paused"] .mascot-zzz {
-  animation: claw-zzz 2.2s ease-out infinite;
+.mascot-zzz .z {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font: 800 11px/1 ui-sans-serif, system-ui, sans-serif;
+  color: #e0f0ff;
+  text-shadow: 0 0 2px rgba(94, 192, 255, 0.55), 0 1px 1px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  animation: claw-zzz 2.4s ease-out infinite;
+  animation-delay: var(--zd, 0s);
 }
+.mascot-zzz .z:nth-child(1) { font-size: 11px; }
+.mascot-zzz .z:nth-child(2) { font-size: 14px; }
+.mascot-zzz .z:nth-child(3) { font-size: 17px; }
+
 @keyframes claw-zzz {
-  0%   { transform: translate(0, 0)   scale(0.8); opacity: 0; }
-  20%  { transform: translate(0, -2px) scale(1);   opacity: 0.9; }
-  100% { transform: translate(8px, -14px) scale(0.7); opacity: 0; }
+  0%   { transform: translate(0, 4px)    scale(0.7); opacity: 0; }
+  15%  { transform: translate(0, 0)      scale(1);   opacity: 1; }
+  60%  { transform: translate(10px, -10px) scale(1.1); opacity: 0.85; }
+  100% { transform: translate(18px, -22px) scale(1.25); opacity: 0; }
 }
 
 /* Quota reset → brief wave. Walk pauses, body tilts. JS adds .waving for

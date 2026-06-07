@@ -94,13 +94,13 @@
   .mascot-sweat {
     display: none;
     position: absolute;
-    top: -16px;
-    left: 22px;
-    width: 13px;
-    height: 17px;
+    top: -22px;
+    left: 19px;
+    width: 18px;
+    height: 24px;
     pointer-events: none;
-    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25))
-            drop-shadow(0 0 2px rgba(94, 192, 255, 0.5));
+    filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.3))
+            drop-shadow(0 0 3px rgba(94, 192, 255, 0.5));
   }
   .card[data-mood="warn"] .mascot-sweat {
     display: block;
@@ -111,8 +111,8 @@
     0%   { transform: translate(0, -6px) scale(0.25); opacity: 0; }
     20%  { transform: translate(0, 0)    scale(1);    opacity: 1; }
     65%  { transform: translate(0, 0)    scale(1);    opacity: 1; }
-    90%  { transform: translate(1px, 6px) scale(1.1); opacity: 1; }
-    100% { transform: translate(2px, 12px) scale(1.15); opacity: 0; }
+    90%  { transform: translate(1px, 8px) scale(1.1); opacity: 1; }
+    100% { transform: translate(2px, 16px) scale(1.15); opacity: 0; }
   }
 
   /* Critical — panic skip + floating panic marks */
@@ -173,24 +173,40 @@
   .card[data-mood="paused"] .mascot:not(.grumpy) svg .eye { display: none; }
   .card[data-mood="paused"] .mascot:not(.grumpy) svg .eye-shut { display: inline; }
 
-  /* ZZZ */
+  /* ZZZ — three staggered z/Z/Z floating above the sleeping head */
   .mascot-zzz {
+    display: none;
     position: absolute;
-    top: -2px;
+    top: -24px;
     left: 28px;
-    font: 700 11px/1 ui-sans-serif, system-ui, sans-serif;
-    color: #9aa0a6;
-    opacity: 0;
+    width: 30px;
+    height: 26px;
     pointer-events: none;
   }
   .card[data-mood="paused"] .mascot-zzz {
-    left: 112px; /* follow the body to the center */
-    animation: claw-zzz 2.2s ease-out infinite;
+    display: block;
+    left: 92px;
   }
+  .card[data-mood="paused"] .mascot.grumpy .mascot-zzz { display: none; }
+  .mascot-zzz .z {
+    position: absolute;
+    top: 0;
+    left: 0;
+    font: 800 11px/1 ui-sans-serif, system-ui, sans-serif;
+    color: #e0f0ff;
+    text-shadow: 0 0 2px rgba(94, 192, 255, 0.55), 0 1px 1px rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    animation: claw-zzz 2.4s ease-out infinite;
+    animation-delay: var(--zd, 0s);
+  }
+  .mascot-zzz .z:nth-child(1) { font-size: 11px; }
+  .mascot-zzz .z:nth-child(2) { font-size: 14px; }
+  .mascot-zzz .z:nth-child(3) { font-size: 17px; }
   @keyframes claw-zzz {
-    0%   { transform: translate(0, 0)    scale(0.8); opacity: 0; }
-    20%  { transform: translate(0, -2px) scale(1);   opacity: 0.9; }
-    100% { transform: translate(8px, -14px) scale(0.7); opacity: 0; }
+    0%   { transform: translate(0, 4px)    scale(0.7); opacity: 0; }
+    15%  { transform: translate(0, 0)      scale(1);   opacity: 1; }
+    60%  { transform: translate(10px, -10px) scale(1.1); opacity: 0.85; }
+    100% { transform: translate(18px, -22px) scale(1.25); opacity: 0; }
   }
 
   /* Grumpy reaction on click while paused: sit up, shake, message bubble,
@@ -284,12 +300,16 @@
       <div class="label"><b>ok</b><span>worst limit &lt; 75%</span></div>
       <div class="desc">Casual 14-second stroll. Anthropic orange. Click for hop.</div>
       <div class="mascot" onclick="onClick(this, 'ok')">
-        <div class="mascot-zzz" aria-hidden="true">z</div>
+        <div class="mascot-zzz" aria-hidden="true">
+          <span class="z" style="--zd:0s">z</span>
+          <span class="z" style="--zd:-0.8s">Z</span>
+          <span class="z" style="--zd:-1.6s">Z</span>
+        </div>
         <div class="mascot-msg" hidden></div>
         <div class="mascot-walk">
           <span class="panic-mark">!</span><span class="panic-mark">!</span><span class="panic-mark">!</span>
           <div class="mascot-sweat" aria-hidden="true">
-            <svg viewBox="0 0 12 16" width="13" height="17">
+            <svg viewBox="0 0 12 16" width="18" height="24">
               <defs>
                 <radialGradient id="sweat-grad-warn" cx="0.35" cy="0.65" r="0.55">
                   <stop offset="0%"  stop-color="#eaf5ff"/>
@@ -323,12 +343,16 @@
       <div class="label"><b>warn</b><span>75% - 90%</span></div>
       <div class="desc">Hurried 8-second trot, side-to-side wiggle, sweat drop beside his head. Tinted with --warn.</div>
       <div class="mascot" onclick="onClick(this, 'warn')">
-        <div class="mascot-zzz" aria-hidden="true">z</div>
+        <div class="mascot-zzz" aria-hidden="true">
+          <span class="z" style="--zd:0s">z</span>
+          <span class="z" style="--zd:-0.8s">Z</span>
+          <span class="z" style="--zd:-1.6s">Z</span>
+        </div>
         <div class="mascot-msg" hidden></div>
         <div class="mascot-walk">
           <span class="panic-mark">!</span><span class="panic-mark">!</span><span class="panic-mark">!</span>
           <div class="mascot-sweat" aria-hidden="true">
-            <svg viewBox="0 0 12 16" width="13" height="17">
+            <svg viewBox="0 0 12 16" width="18" height="24">
               <defs>
                 <radialGradient id="sweat-grad-warn" cx="0.35" cy="0.65" r="0.55">
                   <stop offset="0%"  stop-color="#eaf5ff"/>
@@ -362,12 +386,16 @@
       <div class="label"><b>critical</b><span>&ge; 90%</span></div>
       <div class="desc">Panic skip with anxious jumps + body tilt. Wiggly panic marks float up above his head. Tinted with --critical.</div>
       <div class="mascot" onclick="onClick(this, 'critical')">
-        <div class="mascot-zzz" aria-hidden="true">z</div>
+        <div class="mascot-zzz" aria-hidden="true">
+          <span class="z" style="--zd:0s">z</span>
+          <span class="z" style="--zd:-0.8s">Z</span>
+          <span class="z" style="--zd:-1.6s">Z</span>
+        </div>
         <div class="mascot-msg" hidden></div>
         <div class="mascot-walk">
           <span class="panic-mark">!</span><span class="panic-mark">!</span><span class="panic-mark">!</span>
           <div class="mascot-sweat" aria-hidden="true">
-            <svg viewBox="0 0 12 16" width="13" height="17">
+            <svg viewBox="0 0 12 16" width="18" height="24">
               <defs>
                 <radialGradient id="sweat-grad-warn" cx="0.35" cy="0.65" r="0.55">
                   <stop offset="0%"  stop-color="#eaf5ff"/>
@@ -401,12 +429,16 @@
       <div class="label"><b>paused</b><span>throttled &ge; 2 min</span></div>
       <div class="desc">Asleep — slumped at -22°, eyes shut as thin lines, slow breathing, ZZZ drifts up. Click to wake him up — he won't be happy about it.</div>
       <div class="mascot" onclick="onClick(this, 'paused')">
-        <div class="mascot-zzz" aria-hidden="true">z</div>
+        <div class="mascot-zzz" aria-hidden="true">
+          <span class="z" style="--zd:0s">z</span>
+          <span class="z" style="--zd:-0.8s">Z</span>
+          <span class="z" style="--zd:-1.6s">Z</span>
+        </div>
         <div class="mascot-msg" hidden></div>
         <div class="mascot-walk">
           <span class="panic-mark">!</span><span class="panic-mark">!</span><span class="panic-mark">!</span>
           <div class="mascot-sweat" aria-hidden="true">
-            <svg viewBox="0 0 12 16" width="13" height="17">
+            <svg viewBox="0 0 12 16" width="18" height="24">
               <defs>
                 <radialGradient id="sweat-grad-warn" cx="0.35" cy="0.65" r="0.55">
                   <stop offset="0%"  stop-color="#eaf5ff"/>

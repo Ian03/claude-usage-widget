@@ -63,14 +63,18 @@
          (panic marks, sweat drop, ZZZ, grumpy bubble) live inside the same
          container so they share his z-index and reflow with him. -->
     <div class="mascot" id="mascot" title="Claw'd">
-      <div class="mascot-zzz" aria-hidden="true">z</div>
+      <div class="mascot-zzz" aria-hidden="true">
+        <span class="z" style="--zd:0s">z</span>
+        <span class="z" style="--zd:-0.8s">Z</span>
+        <span class="z" style="--zd:-1.6s">Z</span>
+      </div>
       <div class="mascot-msg" id="mascotMsg" hidden></div>
       <div class="mascot-walk">
         <span class="panic-mark">!</span>
         <span class="panic-mark">!</span>
         <span class="panic-mark">!</span>
         <div class="mascot-sweat" aria-hidden="true">
-          <svg viewBox="0 0 12 16" width="13" height="17">
+          <svg viewBox="0 0 12 16" width="18" height="24">
             <defs>
               <radialGradient id="sweat-grad" cx="0.35" cy="0.65" r="0.55">
                 <stop offset="0%"  stop-color="#eaf5ff"/>
