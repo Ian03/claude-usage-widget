@@ -53,7 +53,7 @@ html, body {
 }
 
 .widget {
-  margin: 8px;
+  margin: 3px;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius);
