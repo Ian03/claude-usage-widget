@@ -16,7 +16,7 @@
 
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 20px;
   }
   .card {
@@ -26,7 +26,7 @@
     padding: 14px 14px 8px;
     position: relative;
     overflow: hidden;
-    min-height: 130px;
+    min-height: 140px;
   }
   .label {
     display: flex;
@@ -37,9 +37,10 @@
     letter-spacing: 0.4px;
   }
   .label b { color: #e9ecef; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; font-size: 11px; }
-  .desc { margin-top: 6px; color: #6f7479; font-size: 11px; line-height: 1.5; }
+  .desc { margin-top: 6px; color: #6f7479; font-size: 11px; line-height: 1.5; min-height: 48px; }
 
-  /* Mascot CSS — mirrors widget.css so previews match production. */
+  /* === Claw'd CSS — mirrors widget.css === */
+
   .mascot {
     position: absolute;
     bottom: 10px;
@@ -52,6 +53,7 @@
     z-index: 5;
   }
   .mascot-walk {
+    position: relative;
     width: 100%; height: 100%;
     animation: claw-walk 14s ease-in-out infinite;
     transform-origin: center;
@@ -72,10 +74,12 @@
     to   { transform: translateY(-2px); }
   }
 
+  /* OK */
   .card[data-mood="ok"]       { --mascot-color: #d7613d; }
   .card[data-mood="ok"]       .mascot-walk { animation-duration: 14s; }
   .card[data-mood="ok"]       .mascot-bob  { animation-duration: 0.5s; }
 
+  /* Warn — hurried trot + sweat drop */
   .card[data-mood="warn"]     { --mascot-color: #F5B400; }
   .card[data-mood="warn"]     .mascot-walk { animation-duration: 8s; }
   .card[data-mood="warn"]     .mascot-bob {
@@ -87,7 +91,28 @@
     50%      { transform: translateY(0)    rotate(1.5deg); }
     75%      { transform: translateY(-3px) rotate(0deg); }
   }
+  .mascot-sweat {
+    display: none;
+    position: absolute;
+    top: 4px;
+    left: 34px;
+    width: 4px; height: 6px;
+    background: #5eaaf0;
+    border-radius: 100% 100% 100% 0;
+    transform: rotate(180deg);
+    pointer-events: none;
+  }
+  .card[data-mood="warn"] .mascot-sweat {
+    display: block;
+    animation: sweat-drop 1.6s ease-in-out infinite;
+  }
+  @keyframes sweat-drop {
+    0%, 100% { transform: rotate(180deg) translateY(-2px) scale(0.6); opacity: 0; }
+    20%      { transform: rotate(180deg) translateY(0)    scale(1);   opacity: 1; }
+    80%      { transform: rotate(180deg) translateY(8px)  scale(1);   opacity: 1; }
+  }
 
+  /* Critical — panic skip + floating panic marks */
   .card[data-mood="critical"] { --mascot-color: #E5484D; }
   .card[data-mood="critical"] .mascot-walk { animation-duration: 4s; }
   .card[data-mood="critical"] .mascot-bob {
@@ -105,7 +130,26 @@
     92%  { transform: translateY(-2px) rotate(3deg); }
     100% { transform: translateY(0)    rotate(0deg); }
   }
+  .panic-mark {
+    display: none;
+    position: absolute;
+    width: 2px; height: 6px;
+    background: var(--mascot-color);
+    border-radius: 1px;
+    pointer-events: none;
+  }
+  .card[data-mood="critical"] .panic-mark { display: block; }
+  .panic-mark:nth-child(1) { top: -10px; left: 12px; animation: panic-rise 0.7s linear infinite; }
+  .panic-mark:nth-child(2) { top: -6px;  left: 24px; animation: panic-rise 0.6s linear infinite 0.25s; }
+  .panic-mark:nth-child(3) { top: -8px;  left: 18px; animation: panic-rise 0.8s linear infinite 0.45s; }
+  @keyframes panic-rise {
+    0%   { transform: translate(0, 0)       rotate(-15deg); opacity: 0; }
+    15%  { transform: translate(-1px, -1px) rotate(15deg);  opacity: 1; }
+    55%  { transform: translate(2px,  -5px) rotate(-15deg); opacity: 1; }
+    100% { transform: translate(0,   -12px) rotate(10deg);  opacity: 0; }
+  }
 
+  /* Paused — sleeping with closed-eye lines + ZZZ; click for grumpy */
   .card[data-mood="paused"]   { --mascot-color: #9aa0a6; }
   .card[data-mood="paused"]   .mascot-walk {
     animation: none;
@@ -119,12 +163,16 @@
     0%, 100% { transform: translateY(0)    scale(1); }
     50%      { transform: translateY(-1px) scale(1.03); }
   }
-  .card[data-mood="paused"] .mascot svg rect:nth-of-type(4),
-  .card[data-mood="paused"] .mascot svg rect:nth-of-type(5) {
-    display: none;
+  /* Closed-eye lines via SVG2 geometry override (not display:none, so the
+     eyes stay visible as short horizontal dashes). */
+  .card[data-mood="paused"] .mascot:not(.grumpy) svg rect:nth-of-type(4) {
+    x: 3; y: 3; width: 2; height: 1;
+  }
+  .card[data-mood="paused"] .mascot:not(.grumpy) svg rect:nth-of-type(5) {
+    x: 9; y: 3; width: 2; height: 1;
   }
 
-  /* ZZZ — only paused */
+  /* ZZZ */
   .mascot-zzz {
     position: absolute;
     top: -2px;
@@ -135,12 +183,54 @@
     pointer-events: none;
   }
   .card[data-mood="paused"] .mascot-zzz {
+    left: 112px; /* follow the body to the center */
     animation: claw-zzz 2.2s ease-out infinite;
   }
   @keyframes claw-zzz {
     0%   { transform: translate(0, 0)    scale(0.8); opacity: 0; }
     20%  { transform: translate(0, -2px) scale(1);   opacity: 0.9; }
     100% { transform: translate(8px, -14px) scale(0.7); opacity: 0; }
+  }
+
+  /* Grumpy reaction on click while paused: sit up, shake, message bubble,
+     ZZZ hidden, eyes pop back open. */
+  .card[data-mood="paused"] .mascot.grumpy .mascot-walk {
+    transform: translateX(100px) rotate(-6deg);
+  }
+  .card[data-mood="paused"] .mascot.grumpy .mascot-bob {
+    animation: claw-grumpy 0.13s ease-in-out infinite;
+  }
+  .card[data-mood="paused"] .mascot.grumpy .mascot-zzz { display: none; }
+  @keyframes claw-grumpy {
+    0%, 100% { transform: translate(-1.5px, -1px); }
+    50%      { transform: translate(1.5px,  -1px); }
+  }
+  .mascot-msg {
+    position: absolute;
+    bottom: 30px;
+    left: 76px;
+    background: #fff;
+    color: #1a1a1d;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font: 500 10px/1.2 ui-sans-serif, system-ui, sans-serif;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+    z-index: 10;
+    animation: msg-pop 0.22s ease-out;
+  }
+  .mascot-msg::after {
+    content: '';
+    position: absolute;
+    bottom: -4px; left: 14px;
+    border-top: 4px solid #fff;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+  }
+  @keyframes msg-pop {
+    from { opacity: 0; transform: translateY(4px) scale(0.85); }
+    to   { opacity: 1; transform: translateY(0)   scale(1); }
   }
 
   /* Wave */
@@ -186,100 +276,151 @@
 </head>
 <body>
   <h1>Claw'd — state preview</h1>
-  <p class="lede">All four moods animating live, plus wave and hop demos. Click any Claw'd to make him hop.</p>
+  <p class="lede">All four moods animating live. Click any Claw'd to make him hop — except the sleeping one, who will be very rude about being woken up.</p>
 
   <div class="grid">
     <div class="card" data-mood="ok">
       <div class="label"><b>ok</b><span>worst limit &lt; 75%</span></div>
-      <div class="desc">Casual 14-second stroll. Anthropic orange.</div>
-      <div class="mascot" onclick="hop(this)">
+      <div class="desc">Casual 14-second stroll. Anthropic orange. Click for hop.</div>
+      <div class="mascot" onclick="onClick(this, 'ok')">
         <div class="mascot-zzz" aria-hidden="true">z</div>
-        <div class="mascot-walk"><div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
-          <rect x="1" y="0" width="12" height="8" fill="currentColor"/>
-          <rect x="0" y="2" width="1" height="4" fill="currentColor"/>
-          <rect x="13" y="2" width="1" height="4" fill="currentColor"/>
-          <rect x="3" y="2" width="1" height="2" fill="#000"/>
-          <rect x="10" y="2" width="1" height="2" fill="#000"/>
-          <rect x="2" y="8" width="1" height="3" fill="currentColor"/>
-          <rect x="5" y="8" width="1" height="3" fill="currentColor"/>
-          <rect x="8" y="8" width="1" height="3" fill="currentColor"/>
-          <rect x="11" y="8" width="1" height="3" fill="currentColor"/>
-        </svg></div></div>
+        <div class="mascot-msg" hidden></div>
+        <div class="mascot-walk">
+          <span class="panic-mark"></span><span class="panic-mark"></span><span class="panic-mark"></span>
+          <div class="mascot-sweat" aria-hidden="true"></div>
+          <div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
+            <rect x="1" y="0" width="12" height="8" fill="currentColor"/>
+            <rect x="0" y="2" width="1" height="4" fill="currentColor"/>
+            <rect x="13" y="2" width="1" height="4" fill="currentColor"/>
+            <rect x="3" y="2" width="1" height="2" fill="#000"/>
+            <rect x="10" y="2" width="1" height="2" fill="#000"/>
+            <rect x="2" y="8" width="1" height="3" fill="currentColor"/>
+            <rect x="5" y="8" width="1" height="3" fill="currentColor"/>
+            <rect x="8" y="8" width="1" height="3" fill="currentColor"/>
+            <rect x="11" y="8" width="1" height="3" fill="currentColor"/>
+          </svg></div>
+        </div>
       </div>
     </div>
 
     <div class="card" data-mood="warn">
       <div class="label"><b>warn</b><span>75% - 90%</span></div>
-      <div class="desc">Hurried 8-second trot with a slight side-to-side wiggle. Tinted with your --warn color.</div>
-      <div class="mascot" onclick="hop(this)">
+      <div class="desc">Hurried 8-second trot, side-to-side wiggle, sweat drop beside his head. Tinted with --warn.</div>
+      <div class="mascot" onclick="onClick(this, 'warn')">
         <div class="mascot-zzz" aria-hidden="true">z</div>
-        <div class="mascot-walk"><div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
-          <rect x="1" y="0" width="12" height="8" fill="currentColor"/>
-          <rect x="0" y="2" width="1" height="4" fill="currentColor"/>
-          <rect x="13" y="2" width="1" height="4" fill="currentColor"/>
-          <rect x="3" y="2" width="1" height="2" fill="#000"/>
-          <rect x="10" y="2" width="1" height="2" fill="#000"/>
-          <rect x="2" y="8" width="1" height="3" fill="currentColor"/>
-          <rect x="5" y="8" width="1" height="3" fill="currentColor"/>
-          <rect x="8" y="8" width="1" height="3" fill="currentColor"/>
-          <rect x="11" y="8" width="1" height="3" fill="currentColor"/>
-        </svg></div></div>
+        <div class="mascot-msg" hidden></div>
+        <div class="mascot-walk">
+          <span class="panic-mark"></span><span class="panic-mark"></span><span class="panic-mark"></span>
+          <div class="mascot-sweat" aria-hidden="true"></div>
+          <div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
+            <rect x="1" y="0" width="12" height="8" fill="currentColor"/>
+            <rect x="0" y="2" width="1" height="4" fill="currentColor"/>
+            <rect x="13" y="2" width="1" height="4" fill="currentColor"/>
+            <rect x="3" y="2" width="1" height="2" fill="#000"/>
+            <rect x="10" y="2" width="1" height="2" fill="#000"/>
+            <rect x="2" y="8" width="1" height="3" fill="currentColor"/>
+            <rect x="5" y="8" width="1" height="3" fill="currentColor"/>
+            <rect x="8" y="8" width="1" height="3" fill="currentColor"/>
+            <rect x="11" y="8" width="1" height="3" fill="currentColor"/>
+          </svg></div>
+        </div>
       </div>
     </div>
 
     <div class="card" data-mood="critical">
       <div class="label"><b>critical</b><span>&ge; 90%</span></div>
-      <div class="desc">Panic skip — 4-second run with intermittent anxious jumps + body tilt. Tinted with your --critical color.</div>
-      <div class="mascot" onclick="hop(this)">
+      <div class="desc">Panic skip with anxious jumps + body tilt. Wiggly panic marks float up above his head. Tinted with --critical.</div>
+      <div class="mascot" onclick="onClick(this, 'critical')">
         <div class="mascot-zzz" aria-hidden="true">z</div>
-        <div class="mascot-walk"><div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
-          <rect x="1" y="0" width="12" height="8" fill="currentColor"/>
-          <rect x="0" y="2" width="1" height="4" fill="currentColor"/>
-          <rect x="13" y="2" width="1" height="4" fill="currentColor"/>
-          <rect x="3" y="2" width="1" height="2" fill="#000"/>
-          <rect x="10" y="2" width="1" height="2" fill="#000"/>
-          <rect x="2" y="8" width="1" height="3" fill="currentColor"/>
-          <rect x="5" y="8" width="1" height="3" fill="currentColor"/>
-          <rect x="8" y="8" width="1" height="3" fill="currentColor"/>
-          <rect x="11" y="8" width="1" height="3" fill="currentColor"/>
-        </svg></div></div>
+        <div class="mascot-msg" hidden></div>
+        <div class="mascot-walk">
+          <span class="panic-mark"></span><span class="panic-mark"></span><span class="panic-mark"></span>
+          <div class="mascot-sweat" aria-hidden="true"></div>
+          <div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
+            <rect x="1" y="0" width="12" height="8" fill="currentColor"/>
+            <rect x="0" y="2" width="1" height="4" fill="currentColor"/>
+            <rect x="13" y="2" width="1" height="4" fill="currentColor"/>
+            <rect x="3" y="2" width="1" height="2" fill="#000"/>
+            <rect x="10" y="2" width="1" height="2" fill="#000"/>
+            <rect x="2" y="8" width="1" height="3" fill="currentColor"/>
+            <rect x="5" y="8" width="1" height="3" fill="currentColor"/>
+            <rect x="8" y="8" width="1" height="3" fill="currentColor"/>
+            <rect x="11" y="8" width="1" height="3" fill="currentColor"/>
+          </svg></div>
+        </div>
       </div>
     </div>
 
     <div class="card" data-mood="paused">
       <div class="label"><b>paused</b><span>throttled &ge; 2 min</span></div>
-      <div class="desc">Asleep — body slumped over at -22 degrees, eyes closed, slow breathing, ZZZ drifts up. Dim grey tint.</div>
-      <div class="mascot" onclick="hop(this)">
+      <div class="desc">Asleep — slumped at -22°, eyes shut as thin lines, slow breathing, ZZZ drifts up. Click to wake him up — he won't be happy about it.</div>
+      <div class="mascot" onclick="onClick(this, 'paused')">
         <div class="mascot-zzz" aria-hidden="true">z</div>
-        <div class="mascot-walk"><div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
-          <rect x="1" y="0" width="12" height="8" fill="currentColor"/>
-          <rect x="0" y="2" width="1" height="4" fill="currentColor"/>
-          <rect x="13" y="2" width="1" height="4" fill="currentColor"/>
-          <rect x="3" y="2" width="1" height="2" fill="#000"/>
-          <rect x="10" y="2" width="1" height="2" fill="#000"/>
-          <rect x="2" y="8" width="1" height="3" fill="currentColor"/>
-          <rect x="5" y="8" width="1" height="3" fill="currentColor"/>
-          <rect x="8" y="8" width="1" height="3" fill="currentColor"/>
-          <rect x="11" y="8" width="1" height="3" fill="currentColor"/>
-        </svg></div></div>
+        <div class="mascot-msg" hidden></div>
+        <div class="mascot-walk">
+          <span class="panic-mark"></span><span class="panic-mark"></span><span class="panic-mark"></span>
+          <div class="mascot-sweat" aria-hidden="true"></div>
+          <div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
+            <rect x="1" y="0" width="12" height="8" fill="currentColor"/>
+            <rect x="0" y="2" width="1" height="4" fill="currentColor"/>
+            <rect x="13" y="2" width="1" height="4" fill="currentColor"/>
+            <rect x="3" y="2" width="1" height="2" fill="#000"/>
+            <rect x="10" y="2" width="1" height="2" fill="#000"/>
+            <rect x="2" y="8" width="1" height="3" fill="currentColor"/>
+            <rect x="5" y="8" width="1" height="3" fill="currentColor"/>
+            <rect x="8" y="8" width="1" height="3" fill="currentColor"/>
+            <rect x="11" y="8" width="1" height="3" fill="currentColor"/>
+          </svg></div>
+        </div>
       </div>
     </div>
   </div>
 
   <div class="controls">
     <button onclick="waveAll()">Trigger wave on all (quota reset)</button>
-    <button onclick="hopAll()">Hop all (click)</button>
+    <button onclick="hopAll()">Hop the awake ones (click)</button>
   </div>
 
 <script>
+  const GRUMPY = [
+    "5 more minutes…",
+    "I was sleeping!",
+    "Hmph.",
+    "Don't.",
+    "Zzz… wha—",
+    "Go away.",
+    "Sleeping here.",
+    "Rude.",
+  ];
+
   function hop(el) {
     el.classList.remove('hopping');
     void el.offsetWidth;
     el.classList.add('hopping');
     setTimeout(() => el.classList.remove('hopping'), 500);
   }
+  function grumpyTimers(el, key) {
+    if (!el._timers) el._timers = {};
+    return el._timers;
+  }
+  function wakeGrumpy(el) {
+    const timers = grumpyTimers(el);
+    if (timers.grumpy) clearTimeout(timers.grumpy);
+    const msg = el.querySelector('.mascot-msg');
+    msg.textContent = GRUMPY[Math.floor(Math.random() * GRUMPY.length)];
+    msg.hidden = false;
+    el.classList.add('grumpy');
+    timers.grumpy = setTimeout(() => {
+      el.classList.remove('grumpy');
+      msg.hidden = true;
+    }, 2000);
+  }
+  function onClick(el, mood) {
+    if (mood === 'paused') return wakeGrumpy(el);
+    hop(el);
+  }
   function hopAll() {
-    document.querySelectorAll('.mascot').forEach(hop);
+    document.querySelectorAll('.card:not([data-mood="paused"]) .mascot').forEach(hop);
   }
   function wave(el) {
     el.classList.remove('waving');

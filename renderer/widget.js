@@ -339,12 +339,42 @@ async function init() {
     if (lastData) render({ data: lastData, stale: false, error: null });
   });
 
-  // Claw'd: click to hop, wave on quota reset.
+  // Claw'd: click to hop (or wake him up grumpy if paused), wave on reset.
   const mascotEl = $('mascot');
+  const mascotMsgEl = $('mascotMsg');
+  const GRUMPY_LINES = [
+    "5 more minutes…",
+    "I was sleeping!",
+    "Hmph.",
+    "Don't.",
+    "Zzz… wha—",
+    "Go away.",
+    "Sleeping here.",
+    "Rude.",
+  ];
+  let grumpyTimer = null;
+  function wakeGrumpy() {
+    if (!mascotEl) return;
+    if (grumpyTimer) clearTimeout(grumpyTimer);
+    if (mascotMsgEl) {
+      mascotMsgEl.textContent = GRUMPY_LINES[Math.floor(Math.random() * GRUMPY_LINES.length)];
+      mascotMsgEl.hidden = false;
+    }
+    mascotEl.classList.add('grumpy');
+    grumpyTimer = setTimeout(() => {
+      mascotEl.classList.remove('grumpy');
+      if (mascotMsgEl) mascotMsgEl.hidden = true;
+      grumpyTimer = null;
+    }, 2000);
+  }
   if (mascotEl) {
     mascotEl.addEventListener('click', () => {
+      // Asleep: don't hop. Wake him up grumpy with a random complaint.
+      if (root.dataset.mascotMood === 'paused') {
+        wakeGrumpy();
+        return;
+      }
       mascotEl.classList.remove('hopping');
-      // Force reflow so the animation restarts on repeated clicks.
       void mascotEl.offsetWidth;
       mascotEl.classList.add('hopping');
       setTimeout(() => mascotEl.classList.remove('hopping'), 500);
