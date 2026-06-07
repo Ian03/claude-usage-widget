@@ -237,7 +237,14 @@ function updateActivityState() {
   else if (idleSec > 600) next = 'deepIdle';
   else if (idleSec > 120) next = 'idle';
   else next = 'active';
-  if (next !== activityState) activityState = next;
+  if (next !== activityState) {
+    const becameActive = next === 'active' && activityState !== 'active';
+    activityState = next;
+    // Modern Windows standby and "lid open but screen off" states often skip the
+    // suspend/resume powerMonitor events. Treat an idle->active transition as a
+    // wake so the user sees fresh data the moment they return.
+    if (becameActive) poller?.notifyWake();
+  }
 }
 
 app.whenReady().then(() => {
