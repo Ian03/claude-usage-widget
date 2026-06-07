@@ -74,11 +74,11 @@
       <div class="row">
         <label for="trayIconStyle">Style</label>
         <select id="trayIconStyle">
-          <option value="bars">Bars (static)</option>
-          <option value="battery">Battery (static)</option>
-          <option value="gauge">Gauge (static)</option>
-          <option value="minimal">Minimal dot (static)</option>
-          <option value="dynamic">Dynamic gauge (reflects worst limit)</option>
+          <option value="bars">Bars (decoration only)</option>
+          <option value="battery">Battery (fills with worst limit)</option>
+          <option value="gauge">Gauge (fills with worst limit)</option>
+          <option value="minimal">Minimal dot (tinted by severity)</option>
+          <option value="dynamic">Dynamic gauge (fills + tints by worst limit)</option>
         </select>
       </div>
     </section>

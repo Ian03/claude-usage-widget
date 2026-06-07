@@ -95,10 +95,35 @@ function createSettings() {
   settingsWindow.on('closed', () => { settingsWindow = null; });
 }
 
+function worstLimitContext() {
+  // Drives the live fill/tint for battery, gauge, minimal, and dynamic.
+  // Returns null when there's no data yet — callers should fall back to a
+  // sensible default fill so the icon doesn't render as a hollow outline.
+  if (!lastUsage || !Array.isArray(lastUsage.limits) || lastUsage.limits.length === 0) return null;
+  const worst = lastUsage.limits.reduce((a, b) => (a.utilization > b.utilization ? a : b));
+  const pct = worst.utilization;
+  const severity = (() => {
+    if (pct >= cfg.thresholds.critical) return cfg.colors.critical;
+    if (pct >= cfg.thresholds.warn) return cfg.colors.warn;
+    return cfg.colors.ok;
+  })();
+  const hex = severity.replace('#', '');
+  return {
+    pct,
+    severity: [parseInt(hex.slice(0, 2), 16), parseInt(hex.slice(2, 4), 16), parseInt(hex.slice(4, 6), 16), 255],
+  };
+}
+
 function makeTrayIconImage() {
-  // 32px primary + 64px for 2x DPI displays
+  // 32px primary + 64px for 2x DPI displays.
+  // Bars is a pure decoration glyph; everything else reflects the live worst
+  // limit. Until the first poll lands, fall back to a nominal fill so the
+  // shapes read as real icons rather than empty outlines.
   const style = cfg.trayIconStyle || 'bars';
+  const ctx = worstLimitContext();
   const opts = { accent: cfg.accentColor };
+  if (ctx) { opts.pct = ctx.pct; opts.severity = ctx.severity; }
+  else if (style === 'battery' || style === 'gauge') { opts.pct = 50; }
   let canvas32, canvas64;
   if (style === 'dynamic') {
     canvas32 = icon.drawDynamic(32, lastUsage, cfg);
@@ -267,7 +292,7 @@ app.whenReady().then(() => {
       lastUsage = data;
       lastError = null;
       history.add(data);
-      if (cfg.trayIconStyle === 'dynamic') refreshTrayIcon();
+      if (cfg.trayIconStyle !== 'bars') refreshTrayIcon();
       broadcast('usage:update', { data, stale: false, cfg, history: history.samples });
       checkNotifications(data);
     },
