@@ -14,4 +14,5 @@ contextBridge.exposeInMainWorld('api', {
   onUsage: (cb) => ipcRenderer.on('usage:update', (_e, payload) => cb(payload)),
   onError: (cb) => ipcRenderer.on('usage:error', (_e, payload) => cb(payload)),
   onConfig: (cb) => ipcRenderer.on('config:changed', (_e, cfg) => cb(cfg)),
+  onReset: (cb) => ipcRenderer.on('usage:reset', (_e, payload) => cb(payload)),
 });

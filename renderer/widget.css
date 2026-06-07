@@ -177,20 +177,20 @@ header.drag {
 /* No-header mode */
 .widget.no-header header.drag { display: none; }
 
-/* Claw'd the resident crab. Walks back and forth along the bottom of the
-   widget. Speed reacts to the worst-limit severity so the user catches a
-   glance of "we're hot right now" without having to read the bars.
-   Tucked beneath buttons via z-index 3 (footer/badges sit above when they
-   need to be readable). */
+/* Claw'd the resident crab. Walks the widget's bottom edge, tints with
+   severity, naps with ZZZ when throttled, waves on quota reset, hops on
+   click. Sized big enough that his head and eyes read clearly even at
+   the bottom-corner border-radius clip. */
 .mascot {
   position: absolute;
-  bottom: 2px;
+  bottom: 6px;
   left: 0;
-  width: 32px;
-  height: 28px;
-  color: #d7613d;
-  pointer-events: none;
-  z-index: 1;
+  width: 40px;
+  height: 32px;
+  color: var(--mascot-color, #d7613d);
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 5;
 }
 .widget[data-no-mascot] .mascot,
 .widget[data-layout="minimal"] .mascot,
@@ -210,8 +210,8 @@ header.drag {
 
 @keyframes claw-walk {
   0%, 100% { transform: translateX(4px) scaleX(1); }
-  45%      { transform: translateX(240px) scaleX(1); }
-  50%      { transform: translateX(240px) scaleX(-1); }
+  45%      { transform: translateX(228px) scaleX(1); }
+  50%      { transform: translateX(228px) scaleX(-1); }
   95%      { transform: translateX(4px) scaleX(-1); }
 }
 @keyframes claw-bob {
@@ -219,18 +219,67 @@ header.drag {
   to   { transform: translateY(-2px); }
 }
 
-/* Mood-driven speeds. The worst-limit severity sets the data-mascot-mood
-   attribute in widget.js, which adjusts how fast Claw'd moves. */
+/* Mood-driven speed + tint. Worst-limit severity sets data-mascot-mood. */
+.widget[data-mascot-mood="ok"]       { --mascot-color: #d7613d; }
 .widget[data-mascot-mood="ok"]       .mascot-walk { animation-duration: 14s; }
 .widget[data-mascot-mood="ok"]       .mascot-bob  { animation-duration: 0.5s; }
+.widget[data-mascot-mood="warn"]     { --mascot-color: var(--warn); }
 .widget[data-mascot-mood="warn"]     .mascot-walk { animation-duration: 8s; }
 .widget[data-mascot-mood="warn"]     .mascot-bob  { animation-duration: 0.32s; }
+.widget[data-mascot-mood="critical"] { --mascot-color: var(--critical); }
 .widget[data-mascot-mood="critical"] .mascot-walk { animation-duration: 4s; }
 .widget[data-mascot-mood="critical"] .mascot-bob  { animation-duration: 0.18s; }
 
-/* Throttled: Claw'd takes a nap. No walking, slow breathing bob. */
+/* Throttled: Claw'd naps in the middle. Walk stops, breathing slows. */
+.widget[data-mascot-mood="paused"]   { --mascot-color: var(--fg-dim); }
 .widget[data-mascot-mood="paused"]   .mascot-walk { animation: none; transform: translateX(120px); }
 .widget[data-mascot-mood="paused"]   .mascot-bob  { animation-duration: 2.2s; }
+
+/* Floating ZZZ — only visible while paused. Drifts up-right and fades. */
+.mascot-zzz {
+  position: absolute;
+  top: -2px;
+  left: 28px;
+  font: 700 11px/1 ui-sans-serif, system-ui, sans-serif;
+  color: var(--fg-dim);
+  opacity: 0;
+  pointer-events: none;
+}
+.widget[data-mascot-mood="paused"] .mascot-zzz {
+  animation: claw-zzz 2.2s ease-out infinite;
+}
+@keyframes claw-zzz {
+  0%   { transform: translate(0, 0)   scale(0.8); opacity: 0; }
+  20%  { transform: translate(0, -2px) scale(1);   opacity: 0.9; }
+  100% { transform: translate(8px, -14px) scale(0.7); opacity: 0; }
+}
+
+/* Quota reset → brief wave. Walk pauses, body tilts. JS adds .waving for
+   ~1.6s and removes it. */
+.mascot.waving .mascot-walk { animation-play-state: paused; }
+.mascot.waving .mascot-bob {
+  animation: claw-wave 1.6s ease-in-out 1;
+  transform-origin: center bottom;
+}
+@keyframes claw-wave {
+  0%, 100% { transform: rotate(0deg)   translateY(0); }
+  20%      { transform: rotate(-14deg) translateY(-3px); }
+  40%      { transform: rotate(10deg)  translateY(-3px); }
+  60%      { transform: rotate(-10deg) translateY(-3px); }
+  80%      { transform: rotate(8deg)   translateY(-2px); }
+}
+
+/* Click to hop. JS adds .hopping for ~0.45s and removes it. */
+.mascot.hopping .mascot-bob {
+  animation: claw-hop 0.45s ease-out 1;
+}
+@keyframes claw-hop {
+  0%   { transform: translateY(0)   scaleY(1); }
+  15%  { transform: translateY(0)   scaleY(0.8) scaleX(1.1); } /* squish */
+  45%  { transform: translateY(-14px) scaleY(1.05) scaleX(0.95); } /* peak */
+  80%  { transform: translateY(0)   scaleY(0.9) scaleX(1.05); } /* land */
+  100% { transform: translateY(0)   scaleY(1); }
+}
 
 /* Pill (minimal) mode — collapses the widget to a small draggable capsule
    showing only the worst-limit %. Click the chevron to expand back. */

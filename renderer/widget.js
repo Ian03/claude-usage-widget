@@ -339,6 +339,25 @@ async function init() {
     if (lastData) render({ data: lastData, stale: false, error: null });
   });
 
+  // Claw'd: click to hop, wave on quota reset.
+  const mascotEl = $('mascot');
+  if (mascotEl) {
+    mascotEl.addEventListener('click', () => {
+      mascotEl.classList.remove('hopping');
+      // Force reflow so the animation restarts on repeated clicks.
+      void mascotEl.offsetWidth;
+      mascotEl.classList.add('hopping');
+      setTimeout(() => mascotEl.classList.remove('hopping'), 500);
+    });
+  }
+  window.api.onReset(() => {
+    if (!mascotEl) return;
+    mascotEl.classList.remove('waving');
+    void mascotEl.offsetWidth;
+    mascotEl.classList.add('waving');
+    setTimeout(() => mascotEl.classList.remove('waving'), 1700);
+  });
+
   $('refreshBtn').addEventListener('click', async () => {
     const btn = $('refreshBtn');
     btn.classList.add('spinning');
