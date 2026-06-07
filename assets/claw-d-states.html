@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Claw'd — state preview</title>
+<style>
+  body {
+    margin: 0;
+    padding: 32px;
+    background: #1a1a1d;
+    color: #e9ecef;
+    font: 14px/1.4 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  h1 { margin: 0 0 4px; font-weight: 600; }
+  p.lede { margin: 0 0 28px; color: #9aa0a6; font-size: 13px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    background: rgba(18, 19, 22, 0.86);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 14px 14px 8px;
+    position: relative;
+    overflow: hidden;
+    min-height: 130px;
+  }
+  .label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 12px;
+    color: #9aa0a6;
+    letter-spacing: 0.4px;
+  }
+  .label b { color: #e9ecef; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; font-size: 11px; }
+  .desc { margin-top: 6px; color: #6f7479; font-size: 11px; line-height: 1.5; }
+
+  /* Mascot CSS — mirrors widget.css so previews match production. */
+  .mascot {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    width: 40px;
+    height: 32px;
+    color: var(--mascot-color, #d7613d);
+    pointer-events: auto;
+    cursor: pointer;
+    z-index: 5;
+  }
+  .mascot-walk {
+    width: 100%; height: 100%;
+    animation: claw-walk 14s ease-in-out infinite;
+    transform-origin: center;
+  }
+  .mascot-bob {
+    width: 100%; height: 100%;
+    animation: claw-bob 0.42s ease-in-out infinite alternate;
+  }
+  .mascot svg { display: block; }
+  @keyframes claw-walk {
+    0%, 100% { transform: translateX(4px) scaleX(1); }
+    45%      { transform: translateX(208px) scaleX(1); }
+    50%      { transform: translateX(208px) scaleX(-1); }
+    95%      { transform: translateX(4px) scaleX(-1); }
+  }
+  @keyframes claw-bob {
+    from { transform: translateY(0); }
+    to   { transform: translateY(-2px); }
+  }
+
+  .card[data-mood="ok"]       { --mascot-color: #d7613d; }
+  .card[data-mood="ok"]       .mascot-walk { animation-duration: 14s; }
+  .card[data-mood="ok"]       .mascot-bob  { animation-duration: 0.5s; }
+  .card[data-mood="warn"]     { --mascot-color: #F5B400; }
+  .card[data-mood="warn"]     .mascot-walk { animation-duration: 8s; }
+  .card[data-mood="warn"]     .mascot-bob  { animation-duration: 0.32s; }
+  .card[data-mood="critical"] { --mascot-color: #E5484D; }
+  .card[data-mood="critical"] .mascot-walk { animation-duration: 4s; }
+  .card[data-mood="critical"] .mascot-bob  { animation-duration: 0.18s; }
+  .card[data-mood="paused"]   { --mascot-color: #9aa0a6; }
+  .card[data-mood="paused"]   .mascot-walk { animation: none; transform: translateX(100px); }
+  .card[data-mood="paused"]   .mascot-bob  { animation-duration: 2.2s; }
+
+  /* ZZZ — only paused */
+  .mascot-zzz {
+    position: absolute;
+    top: -2px;
+    left: 28px;
+    font: 700 11px/1 ui-sans-serif, system-ui, sans-serif;
+    color: #9aa0a6;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .card[data-mood="paused"] .mascot-zzz {
+    animation: claw-zzz 2.2s ease-out infinite;
+  }
+  @keyframes claw-zzz {
+    0%   { transform: translate(0, 0)    scale(0.8); opacity: 0; }
+    20%  { transform: translate(0, -2px) scale(1);   opacity: 0.9; }
+    100% { transform: translate(8px, -14px) scale(0.7); opacity: 0; }
+  }
+
+  /* Wave */
+  .mascot.waving .mascot-walk { animation-play-state: paused; }
+  .mascot.waving .mascot-bob {
+    animation: claw-wave 1.6s ease-in-out 1;
+    transform-origin: center bottom;
+  }
+  @keyframes claw-wave {
+    0%, 100% { transform: rotate(0deg)   translateY(0); }
+    20%      { transform: rotate(-14deg) translateY(-3px); }
+    40%      { transform: rotate(10deg)  translateY(-3px); }
+    60%      { transform: rotate(-10deg) translateY(-3px); }
+    80%      { transform: rotate(8deg)   translateY(-2px); }
+  }
+
+  /* Hop */
+  .mascot.hopping .mascot-bob { animation: claw-hop 0.45s ease-out 1; }
+  @keyframes claw-hop {
+    0%   { transform: translateY(0) scaleY(1); }
+    15%  { transform: translateY(0) scaleY(0.8) scaleX(1.1); }
+    45%  { transform: translateY(-14px) scaleY(1.05) scaleX(0.95); }
+    80%  { transform: translateY(0) scaleY(0.9) scaleX(1.05); }
+    100% { transform: translateY(0) scaleY(1); }
+  }
+
+  .controls {
+    margin: 28px 0 6px;
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  button {
+    background: #2a2a2e;
+    color: #e9ecef;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+  }
+  button:hover { background: #36363a; }
+</style>
+</head>
+<body>
+  <h1>Claw'd — state preview</h1>
+  <p class="lede">All four moods animating live, plus wave and hop demos. Click any Claw'd to make him hop.</p>
+
+  <div class="grid">
+    <div class="card" data-mood="ok">
+      <div class="label"><b>ok</b><span>worst limit &lt; 75%</span></div>
+      <div class="desc">Casual 14-second stroll. Anthropic orange.</div>
+      <div class="mascot" onclick="hop(this)">
+        <div class="mascot-zzz" aria-hidden="true">z</div>
+        <div class="mascot-walk"><div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
+          <rect x="1" y="0" width="12" height="8" fill="currentColor"/>
+          <rect x="0" y="2" width="1" height="4" fill="currentColor"/>
+          <rect x="13" y="2" width="1" height="4" fill="currentColor"/>
+          <rect x="3" y="2" width="1" height="2" fill="#000"/>
+          <rect x="10" y="2" width="1" height="2" fill="#000"/>
+          <rect x="2" y="8" width="1" height="3" fill="currentColor"/>
+          <rect x="5" y="8" width="1" height="3" fill="currentColor"/>
+          <rect x="8" y="8" width="1" height="3" fill="currentColor"/>
+          <rect x="11" y="8" width="1" height="3" fill="currentColor"/>
+        </svg></div></div>
+      </div>
+    </div>
+
+    <div class="card" data-mood="warn">
+      <div class="label"><b>warn</b><span>75% - 90%</span></div>
+      <div class="desc">Brisk 8-second walk, faster bob. Tinted with your --warn color.</div>
+      <div class="mascot" onclick="hop(this)">
+        <div class="mascot-zzz" aria-hidden="true">z</div>
+        <div class="mascot-walk"><div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
+          <rect x="1" y="0" width="12" height="8" fill="currentColor"/>
+          <rect x="0" y="2" width="1" height="4" fill="currentColor"/>
+          <rect x="13" y="2" width="1" height="4" fill="currentColor"/>
+          <rect x="3" y="2" width="1" height="2" fill="#000"/>
+          <rect x="10" y="2" width="1" height="2" fill="#000"/>
+          <rect x="2" y="8" width="1" height="3" fill="currentColor"/>
+          <rect x="5" y="8" width="1" height="3" fill="currentColor"/>
+          <rect x="8" y="8" width="1" height="3" fill="currentColor"/>
+          <rect x="11" y="8" width="1" height="3" fill="currentColor"/>
+        </svg></div></div>
+      </div>
+    </div>
+
+    <div class="card" data-mood="critical">
+      <div class="label"><b>critical</b><span>&ge; 90%</span></div>
+      <div class="desc">4-second panic run, frantic bob. Tinted with your --critical color.</div>
+      <div class="mascot" onclick="hop(this)">
+        <div class="mascot-zzz" aria-hidden="true">z</div>
+        <div class="mascot-walk"><div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
+          <rect x="1" y="0" width="12" height="8" fill="currentColor"/>
+          <rect x="0" y="2" width="1" height="4" fill="currentColor"/>
+          <rect x="13" y="2" width="1" height="4" fill="currentColor"/>
+          <rect x="3" y="2" width="1" height="2" fill="#000"/>
+          <rect x="10" y="2" width="1" height="2" fill="#000"/>
+          <rect x="2" y="8" width="1" height="3" fill="currentColor"/>
+          <rect x="5" y="8" width="1" height="3" fill="currentColor"/>
+          <rect x="8" y="8" width="1" height="3" fill="currentColor"/>
+          <rect x="11" y="8" width="1" height="3" fill="currentColor"/>
+        </svg></div></div>
+      </div>
+    </div>
+
+    <div class="card" data-mood="paused">
+      <div class="label"><b>paused</b><span>throttled &ge; 2 min</span></div>
+      <div class="desc">Naps in the middle. Slow breathing bob, ZZZ floats up. Dim grey tint.</div>
+      <div class="mascot" onclick="hop(this)">
+        <div class="mascot-zzz" aria-hidden="true">z</div>
+        <div class="mascot-walk"><div class="mascot-bob"><svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
+          <rect x="1" y="0" width="12" height="8" fill="currentColor"/>
+          <rect x="0" y="2" width="1" height="4" fill="currentColor"/>
+          <rect x="13" y="2" width="1" height="4" fill="currentColor"/>
+          <rect x="3" y="2" width="1" height="2" fill="#000"/>
+          <rect x="10" y="2" width="1" height="2" fill="#000"/>
+          <rect x="2" y="8" width="1" height="3" fill="currentColor"/>
+          <rect x="5" y="8" width="1" height="3" fill="currentColor"/>
+          <rect x="8" y="8" width="1" height="3" fill="currentColor"/>
+          <rect x="11" y="8" width="1" height="3" fill="currentColor"/>
+        </svg></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button onclick="waveAll()">Trigger wave on all (quota reset)</button>
+    <button onclick="hopAll()">Hop all (click)</button>
+  </div>
+
+<script>
+  function hop(el) {
+    el.classList.remove('hopping');
+    void el.offsetWidth;
+    el.classList.add('hopping');
+    setTimeout(() => el.classList.remove('hopping'), 500);
+  }
+  function hopAll() {
+    document.querySelectorAll('.mascot').forEach(hop);
+  }
+  function wave(el) {
+    el.classList.remove('waving');
+    void el.offsetWidth;
+    el.classList.add('waving');
+    setTimeout(() => el.classList.remove('waving'), 1700);
+  }
+  function waveAll() {
+    document.querySelectorAll('.mascot').forEach(wave);
+  }
+</script>
+</body>
+</html>
