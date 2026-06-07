@@ -53,6 +53,7 @@ html, body {
 }
 
 .widget {
+  position: relative;
   margin: 3px;
   background: var(--bg);
   border: 1px solid var(--border);
@@ -175,6 +176,61 @@ header.drag {
 
 /* No-header mode */
 .widget.no-header header.drag { display: none; }
+
+/* Claw'd the resident crab. Walks back and forth along the bottom of the
+   widget. Speed reacts to the worst-limit severity so the user catches a
+   glance of "we're hot right now" without having to read the bars.
+   Tucked beneath buttons via z-index 3 (footer/badges sit above when they
+   need to be readable). */
+.mascot {
+  position: absolute;
+  bottom: 2px;
+  left: 0;
+  width: 32px;
+  height: 28px;
+  color: #d7613d;
+  pointer-events: none;
+  z-index: 1;
+}
+.widget[data-no-mascot] .mascot,
+.widget[data-layout="minimal"] .mascot,
+.widget[data-layout="essential"] .mascot {
+  display: none;
+}
+.mascot-walk {
+  width: 100%; height: 100%;
+  animation: claw-walk 14s ease-in-out infinite;
+  transform-origin: center;
+}
+.mascot-bob {
+  width: 100%; height: 100%;
+  animation: claw-bob 0.42s ease-in-out infinite alternate;
+}
+.mascot svg { display: block; }
+
+@keyframes claw-walk {
+  0%, 100% { transform: translateX(4px) scaleX(1); }
+  45%      { transform: translateX(240px) scaleX(1); }
+  50%      { transform: translateX(240px) scaleX(-1); }
+  95%      { transform: translateX(4px) scaleX(-1); }
+}
+@keyframes claw-bob {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-2px); }
+}
+
+/* Mood-driven speeds. The worst-limit severity sets the data-mascot-mood
+   attribute in widget.js, which adjusts how fast Claw'd moves. */
+.widget[data-mascot-mood="ok"]       .mascot-walk { animation-duration: 14s; }
+.widget[data-mascot-mood="ok"]       .mascot-bob  { animation-duration: 0.5s; }
+.widget[data-mascot-mood="warn"]     .mascot-walk { animation-duration: 8s; }
+.widget[data-mascot-mood="warn"]     .mascot-bob  { animation-duration: 0.32s; }
+.widget[data-mascot-mood="critical"] .mascot-walk { animation-duration: 4s; }
+.widget[data-mascot-mood="critical"] .mascot-bob  { animation-duration: 0.18s; }
+
+/* Throttled: Claw'd takes a nap. No walking, slow breathing bob. */
+.widget[data-mascot-mood="paused"]   .mascot-walk { animation: none; transform: translateX(120px); }
+.widget[data-mascot-mood="paused"]   .mascot-bob  { animation-duration: 2.2s; }
 
 /* Pill (minimal) mode — collapses the widget to a small draggable capsule
    showing only the worst-limit %. Click the chevron to expand back. */

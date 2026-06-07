@@ -10,6 +10,7 @@ const BINDINGS = [
   { id: 'showResetCountdown', path: ['showResetCountdown'], type: 'checked' },
   { id: 'showPaceMarker', path: ['showPaceMarker'], type: 'checked' },
   { id: 'showStaleIndicator', path: ['showStaleIndicator'], type: 'checked' },
+  { id: 'showMascot', path: ['showMascot'], type: 'checked' },
   { id: 'theme', path: ['theme'], type: 'value' },
   { id: 'accentColor', path: ['accentColor'], type: 'value' },
   { id: 'opacity', path: ['opacity'], type: 'number', display: 'opacityVal', fmt: (v) => v.toFixed(2) },

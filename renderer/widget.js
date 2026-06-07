@@ -63,6 +63,7 @@ function applyTheme(cfg) {
   root.dataset.layout = cfg.layout;
   root.classList.toggle('no-blur', !cfg.blur);
   root.classList.toggle('no-header', !cfg.showHeader);
+  root.toggleAttribute('data-no-mascot', !cfg.showMascot);
 
   const ds = document.documentElement.style;
   ds.setProperty('--accent', cfg.accentColor);
@@ -167,6 +168,14 @@ function render(payload) {
   statusDot.className = `dot ${stale ? 'stale' : worstSeverity}`;
   lastUpdatedEl.textContent = `Updated ${fmtAge(data.fetchedAt)}`;
   renderPill(data, stale, worstSeverity);
+
+  // Claw'd's mood: throttled trumps everything (he naps), otherwise his
+  // walking speed mirrors the worst limit's severity tier.
+  const mascotMood = (error && error.code === 'RATE_LIMITED' && throttledSince
+                       && (Date.now() - throttledSince) >= SOFT_THROTTLE_MS)
+    ? 'paused'
+    : worstSeverity; // 'ok' | 'warn' | 'critical'
+  root.dataset.mascotMood = mascotMood;
 
   const staleLong = staleSince != null && (Date.now() - staleSince) >= SOFT_STALE_MS;
   staleBadge.hidden = !stale || !cfg.showStaleIndicator || !staleLong;

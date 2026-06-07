@@ -22,6 +22,7 @@ const DEFAULTS = {
   showHistoryGraph: false,
   showStaleIndicator: true,
   historyLimitId: 'seven_day', // which series to plot
+  showMascot: true,            // Claw'd walks along the widget bottom
 
   // Theme
   theme: 'system',
