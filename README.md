@@ -122,6 +122,9 @@ npm run pill-gif         # regenerate assets/demo-pill.gif (minimal mode demo)
 npm run layouts-png      # regenerate assets/layouts.png (layout comparison)
 npm run trays-png        # regenerate assets/trays.png (tray icon styles)
 npm run themes-png       # regenerate assets/themes.png (dark vs light)
+npm run thresholds-png   # regenerate assets/thresholds.png (OK / warn / critical)
+npm run history-png      # regenerate assets/history.png (7-day graph showcase)
+npm run settings-png     # regenerate assets/settings.png (full settings panel)
 npm run og-image         # regenerate the 1280x640 social-preview PNG
 npm run build            # portable EXE in dist/
 npm run build:installer  # NSIS one-click installer in dist/
@@ -130,6 +133,10 @@ npm run build:installer  # NSIS one-click installer in dist/
 ## Make it yours
 
 The widget is built to disappear into your workflow. Almost every part of how it looks, where it sits, and when it interrupts you is configurable from the settings cog — no config-file editing required.
+
+<p align="center">
+  <img src="assets/settings.png" width="720" alt="The full settings panel: Layout, Look, Tray icon, History graph, Thresholds, Notifications, Reset hooks, Startup, and About — every option visible on one screen." />
+</p>
 
 <p align="center">
   <img src="assets/layouts.png" width="640" alt="Four layout options side by side: Expanded (full bars + countdowns), Compact (tighter spacing), Essential (bars only, no chrome), and Minimal (pill showing worst limit only)." />
@@ -179,9 +186,17 @@ Five styles, all redraw live as your usage changes:
 
 ### History graph
 
+<p align="center">
+  <img src="assets/history.png" width="360" alt="The widget with the 7-day history graph expanded under the weekly bar: a smooth SVG sparkline shaded underneath, with the current % shown beside the series label." />
+</p>
+
 Toggle on/off. Pick any single limit to plot (all-models, Sonnet, Opus, session, or extra) — 7 days of samples, drawn as a smooth SVG sparkline inside the widget body.
 
 ### Thresholds & notifications
+
+<p align="center">
+  <img src="assets/thresholds.png" width="720" alt="The same widget rendered at three severity states side by side: OK (green bar + dot) at 32%, Warn (yellow) at 78%, and Critical (red) at 91% with a pulsing dot." />
+</p>
 
 - **Warn %** and **Critical %** (defaults: 75 / 90) — controls when bars change color and when notifications fire.
 - **Per-state colors** for OK / warn / critical — fully customizable.
@@ -244,6 +259,9 @@ scripts/
   build-layouts-png.js  Side-by-side layout showcase → assets/layouts.png
   build-trays-png.js    Five tray icon styles, captioned → assets/trays.png
   build-themes-png.js   Dark vs light theme comparison → assets/themes.png
+  build-thresholds-png.js  OK/warn/critical severity comparison → assets/thresholds.png
+  build-history-png.js     Widget + 7-day history graph → assets/history.png
+  build-settings-png.js    Two-column shot of the live settings panel → assets/settings.png
   build-og-image.js     Headless Electron capture → assets/og-image.png (social card)
 .github/
   workflows/release.yml        Builds the portable EXE on tag push
