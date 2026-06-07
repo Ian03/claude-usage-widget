@@ -6,6 +6,9 @@ dist*/
 out/
 build/
 
+# Capture script output (regenerable via `npm run mascot-preview`)
+assets/mascot-preview/
+
 # Local caches and logs
 *.log
 npm-debug.log*
