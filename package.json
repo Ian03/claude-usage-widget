@@ -1,6 +1,6 @@
 {
   "name": "claude-usage-widget",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "Always-on-top Claude.ai plan usage widget for Windows. Lessons baked in from jens-duttke, niccolo-sabato, SlavomirDurej, thanoban, eddmann/ClaudeMeter, f-is-h/Usage4Claude.",
   "main": "src/main.js",
   "scripts": {
@@ -17,6 +17,7 @@
     "thresholds-png": "node scripts/build-thresholds-png.js",
     "history-png": "node scripts/build-history-png.js",
     "settings-png": "node scripts/build-settings-png.js",
+    "mascot-preview": "node scripts/capture-mascot-preview.js",
     "build": "electron-builder --win portable --publish never",
     "build:installer": "electron-builder --win nsis --publish never",
     "build:mac": "electron-builder --mac --publish never",
