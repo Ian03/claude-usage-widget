@@ -10,6 +10,9 @@ const graphSvg = $('graph');
 const graphEmpty = $('graphEmpty');
 const graphTitle = $('graphTitle');
 const graphSub = $('graphSub');
+const pillDot = $('pillDot');
+const pillPct = $('pillPct');
+const pillLabel = $('pillLabel');
 
 let currentCfg = null;
 let lastData = null;
@@ -114,6 +117,7 @@ function render(payload) {
 
   statusDot.className = `dot ${stale ? 'stale' : worstSeverity}`;
   lastUpdatedEl.textContent = `Updated ${fmtAge(data.fetchedAt)}`;
+  renderPill(data, stale, worstSeverity);
   staleBadge.hidden = !stale || !cfg.showStaleIndicator;
 
   const eb = errorBadgeFor(error);
@@ -164,6 +168,31 @@ function errorBadgeFor(error) {
     kind: 'error',
     title: error.message || 'Network error — the widget will retry.',
   };
+}
+
+// Pill mode shows only the worst-utilized limit at a glance. The label is
+// kept tight ("week", "5h", etc) so a non-technical user can read it without
+// thinking — the colored dot already encodes severity.
+function renderPill(data, stale, worstSeverity) {
+  if (!data || !data.limits || data.limits.length === 0) {
+    pillPct.textContent = '—';
+    pillLabel.textContent = '';
+    pillDot.className = `pill-dot ${stale ? 'stale' : ''}`;
+    return;
+  }
+  const worst = data.limits.reduce((a, b) => (a.utilization > b.utilization ? a : b));
+  pillPct.textContent = `${Math.round(worst.utilization)}%`;
+  pillLabel.textContent = shortLabel(worst);
+  pillDot.className = `pill-dot ${stale ? 'stale' : worstSeverity}`;
+}
+
+function shortLabel(limit) {
+  const id = limit.id || '';
+  if (id.startsWith('seven_day')) return 'week';
+  if (id === 'five_hour') return '5h';
+  if (id === 'extra')      return 'extra';
+  // Fallback: first word of the label.
+  return (limit.label || '').split(/[\s·-]/)[0].toLowerCase();
 }
 
 function renderPace(limit, pct) {
@@ -246,6 +275,14 @@ async function init() {
   });
   $('settingsBtn').addEventListener('click', () => window.api.openSettings());
   $('closeBtn').addEventListener('click', () => window.api.quit());
+
+  $('minimizeBtn').addEventListener('click', () => {
+    const keep = currentCfg.layout === 'minimal' ? currentCfg.lastExpandedLayout : currentCfg.layout;
+    window.api.updateConfig({ layout: 'minimal', lastExpandedLayout: keep || 'expanded' });
+  });
+  $('expandBtn').addEventListener('click', () => {
+    window.api.updateConfig({ layout: currentCfg.lastExpandedLayout || 'expanded' });
+  });
 
   setInterval(() => {
     if (lastData) render({ data: lastData, stale: staleBadge.hidden ? false : true, error: null });

@@ -11,8 +11,11 @@ const DEFAULTS = {
   opacity: 0.96,
   draggable: true,
 
-  // Layout
+  // Layout. 'minimal' collapses the widget to a small pill (worst-limit %
+  // + colored dot). lastExpandedLayout remembers what to restore when the
+  // user un-minimizes from the pill.
   layout: 'expanded',
+  lastExpandedLayout: 'expanded',
   showHeader: true,
   showResetCountdown: true,
   showPaceMarker: true,

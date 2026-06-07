@@ -153,3 +153,44 @@ header.drag {
 
 /* No-header mode */
 .widget.no-header header.drag { display: none; }
+
+/* Pill (minimal) mode — collapses the widget to a small draggable capsule
+   showing only the worst-limit %. Click the chevron to expand back. */
+.pill { display: none; }
+.widget[data-layout="minimal"] .pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 12px;
+  cursor: grab;
+  -webkit-app-region: drag;
+}
+.widget[data-layout="minimal"] header.drag,
+.widget[data-layout="minimal"] .body { display: none; }
+
+.pill-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--ok);
+  box-shadow: 0 0 0 2px rgba(61, 220, 132, 0.18);
+  transition: background 0.3s;
+  flex-shrink: 0;
+}
+.pill-dot.warn { background: var(--warn); box-shadow: 0 0 0 2px rgba(245, 180, 0, 0.18); }
+.pill-dot.critical { background: var(--critical); box-shadow: 0 0 0 2px rgba(229, 72, 77, 0.18); animation: pulse 1.4s infinite; }
+.pill-dot.stale { background: var(--fg-dim); box-shadow: none; }
+
+.pill-pct {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: calc(14px * var(--font-scale));
+  color: var(--fg);
+}
+
+.pill-label {
+  font-size: calc(10px * var(--font-scale));
+  color: var(--fg-dim);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

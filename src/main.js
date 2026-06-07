@@ -20,8 +20,9 @@ let notifiedFor = new Set();
 function createWidget() {
   const display = screen.getPrimaryDisplay();
   const { workArea } = display;
-  const width = cfg.size.width;
-  const height = 320;
+  const isMinimal = cfg.layout === 'minimal';
+  const width = isMinimal ? 156 : cfg.size.width;
+  const height = isMinimal ? 44 : 320;
   const x = cfg.position.x ?? workArea.x + workArea.width - width - 24;
   const y = cfg.position.y ?? workArea.y + 24;
 
@@ -310,6 +311,10 @@ app.whenReady().then(() => {
   ipcMain.handle('shell:openCreds', () => shell.openPath(require('./usage').CREDS_PATH));
 });
 
+// Pill mode uses a small fixed-size window so it actually feels minimized
+// on screen rather than just hiding the body inside a 280x320 transparent box.
+const MINIMAL_SIZE = { width: 156, height: 44 };
+
 function applyConfig() {
   syncLoginItem();
   nativeTheme.themeSource = cfg.theme;
@@ -318,6 +323,13 @@ function applyConfig() {
   widgetWindow.setOpacity(cfg.opacity);
   widgetWindow.setAlwaysOnTop(cfg.alwaysOnTop, 'screen-saver');
   widgetWindow.setIgnoreMouseEvents(cfg.clickThrough, { forward: true });
+
+  const [x, y] = widgetWindow.getPosition();
+  if (cfg.layout === 'minimal') {
+    widgetWindow.setBounds({ x, y, width: MINIMAL_SIZE.width, height: MINIMAL_SIZE.height });
+  } else {
+    widgetWindow.setBounds({ x, y, width: cfg.size.width, height: 320 });
+  }
 }
 
 function deepMerge(base, patch) {
