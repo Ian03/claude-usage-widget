@@ -6,7 +6,7 @@
 
 **An always-on-top floating widget that shows your claude.ai plan usage in real time, on Windows.** Built specifically around the OAuth token Claude Code already keeps on your machine, so it cannot be broken by Cloudflare changes that take down cookie-scraping trackers.
 
-➡ **[Download the latest portable .exe](../../releases/latest)** — 70 MB, single file, no install. Tested on Windows 11.
+➡ **[Download the latest portable .exe](../../releases/latest)** — ~88 MB, single file, no install. Tested on Windows 11.
 
 > First-launch note: the EXE is unsigned (we're applying for free OSS code signing — paying $300/yr for a cert is on hold until v1.0). SmartScreen will say "Windows protected your PC." Click **More info → Run anyway**. One-time click per machine.
 
@@ -21,6 +21,7 @@ The same bars as **Settings → Usage** on claude.ai, plus things they don't:
 - A **pace marker** on each bar — a vertical line that turns red when you're burning faster than the timer
 - An optional 7-day SVG history graph for any limit you pick
 - Threshold notifications and shell hooks that fire when a limit resets
+- A **pill / minimal mode** that collapses the widget to a tiny ~156×44 capsule showing just the worst-utilized limit %, ideal for non-developers who want ambient awareness without giving up screen real estate
 
 ## How it's different
 
@@ -114,25 +115,84 @@ npm start
 ```
 
 ```powershell
-npm test            # snapshot tests for the parser
-npm run icons       # regenerate the tray + window icons
-npm run demo-gif    # regenerate assets/demo.gif from the demo HTML
-npm run build       # portable EXE in dist/
+npm test                 # snapshot tests for the parser
+npm run icons            # regenerate the tray + window icons
+npm run demo-gif         # regenerate assets/demo.gif (main demo)
+npm run pill-gif         # regenerate assets/demo-pill.gif (minimal mode demo)
+npm run layouts-png      # regenerate assets/layouts.png (layout comparison)
+npm run og-image         # regenerate the 1280x640 social-preview PNG
+npm run build            # portable EXE in dist/
 npm run build:installer  # NSIS one-click installer in dist/
 ```
 
-## Cosmetic options
+## Make it yours
 
-| Section | Options |
-|---|---|
-| Layout | Expanded / Compact / Essential, always-on-top, click-through, show/hide header, reset countdown, pace marker, stale badge |
-| Look | System / Dark / Light theme, accent color, opacity (40–100 %), corner radius (0–28 px), font scale (85–160 %), font family, background blur on/off |
-| Tray icon | Bars · Battery · Gauge · Minimal · **Dynamic** (gauge that reflects the worst current limit) |
-| History graph | Toggle on/off, pick which limit to plot (all-models / Sonnet / Opus / session / extra) |
-| Thresholds | Warn % and Critical % (default 75 / 90), per-state colors (OK / warn / critical) |
-| Notifications | Toggle warn-level and critical-level desktop notifications |
-| Reset hooks | Shell command per limit; env vars `CLAUDE_RESET_ID`, `CLAUDE_RESET_LABEL`, `CLAUDE_RESET_AT` |
-| Startup | Start with Windows, Open hidden (tray only) |
+The widget is built to disappear into your workflow. Almost every part of how it looks, where it sits, and when it interrupts you is configurable from the settings cog — no config-file editing required.
+
+<p align="center">
+  <img src="assets/layouts.png" width="640" alt="Four layout options side by side: Expanded (full bars + countdowns), Compact (tighter spacing), Essential (bars only, no chrome), and Minimal (pill showing worst limit only)." />
+</p>
+
+### Layout
+
+Four density modes, swap any time from the header chevron or settings:
+
+- **Expanded** — the full experience: header, bars, reset countdowns, pace markers, optional history graph.
+- **Compact** — header + bars, countdowns hidden. Saves vertical space.
+- **Essential** — tightest spacing, footer hidden, smaller fonts. (Pair with the "Hide header" toggle if you want bars-only with no chrome at all.)
+- **Minimal (pill)** — single capsule showing the worst-utilized limit's % and severity color. ~156×44 px. Click the chevron inside the pill to expand back. Designed for **non-developers who want ambient awareness without giving up screen real estate**.
+
+  <p align="center">
+    <img src="assets/demo-pill.gif" width="320" alt="Pill mode animating from 30% (green) up through 78% (yellow warn) to 91% (red critical), then resetting." />
+  </p>
+
+Plus: always-on-top, optional click-through (let clicks pass through the widget), show/hide header, pace marker, stale badge, reset countdown toggle.
+
+### Look
+
+- **Theme:** System / Dark / Light, follows OS by default.
+- **Accent color:** pick any hex — recolors the bars, dots, and gauge.
+- **Opacity:** 40 – 100 % so the widget can sit unobtrusively over other windows.
+- **Corner radius:** 0 – 28 px (sharp corners to fully rounded).
+- **Font scale:** 85 – 160 %, plus optional custom font family.
+- **Background blur:** toggle the glass-blur backdrop on systems where it's expensive.
+
+### Tray icon
+
+Five styles, all redraw live as your usage changes:
+
+- **Bars** — three stacked bars, abstract but on-brand.
+- **Battery** — fill level mirrors your worst utilization, just like a phone battery.
+- **Gauge** — circular progress arc.
+- **Minimal** — solid colored dot, severity-tinted.
+- **Dynamic** — picks the right representation automatically and colors it by the live worst-limit severity.
+
+### History graph
+
+Toggle on/off. Pick any single limit to plot (all-models, Sonnet, Opus, session, or extra) — 7 days of samples, drawn as a smooth SVG sparkline inside the widget body.
+
+### Thresholds & notifications
+
+- **Warn %** and **Critical %** (defaults: 75 / 90) — controls when bars change color and when notifications fire.
+- **Per-state colors** for OK / warn / critical — fully customizable.
+- **Native desktop notifications** at warn level (optional) and critical level (on by default).
+
+### Reset hooks (power-user)
+
+Run any shell command when a specific quota window rolls over. The command gets these env vars:
+
+- `CLAUDE_RESET_ID` — which limit reset (e.g., `seven_day_sonnet`)
+- `CLAUDE_RESET_LABEL` — the human-readable label
+- `CLAUDE_RESET_AT` — the new reset timestamp
+
+Useful for: piping a notification to Slack, triggering a "fresh start" script, kicking off a batch job that was waiting on quota.
+
+### Startup
+
+- **Start with Windows** — registers the widget as a login item.
+- **Open hidden** — launch straight to the system tray, no widget popup on boot.
+
+---
 
 Config persists to `%APPDATA%\claude-usage-widget\config.json`; history samples to `%APPDATA%\claude-usage-widget\history.json`.
 
@@ -163,12 +223,16 @@ renderer/
   widget.html / .css / .js     Always-on-top floating widget + SVG history graph
   settings.html / .css / .js   Live-editing settings panel
   demo.html                    Self-contained widget clone for GIF capture
+  demo-pill.html               Self-contained pill-mode clone for the pill GIF
 tests/
   normalize.test.js   Snapshot tests against the live response shape
 scripts/
-  launch.js          Strips ELECTRON_RUN_AS_NODE before spawning the GUI
-  build-icon.js      Pre-bakes tray + window + preview icons
-  build-demo-gif.js  Headless Electron capture + gifenc → assets/demo.gif
+  launch.js             Strips ELECTRON_RUN_AS_NODE before spawning the GUI
+  build-icon.js         Pre-bakes tray + window + preview icons
+  build-demo-gif.js     Headless Electron capture + gifenc → assets/demo.gif
+  build-pill-gif.js     Same pattern → assets/demo-pill.gif (minimal mode)
+  build-layouts-png.js  Side-by-side layout showcase → assets/layouts.png
+  build-og-image.js     Headless Electron capture → assets/og-image.png (social card)
 .github/
   workflows/release.yml        Builds the portable EXE on tag push
   ISSUE_TEMPLATE/              Bug + feature templates

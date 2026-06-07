@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="widget.css" />
+  <style>
+    html, body {
+      background: linear-gradient(135deg, #2a3b52 0%, #1f3144 50%, #233447 100%);
+      overflow: hidden;
+      margin: 0;
+      padding: 40px;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .caption {
+      position: absolute;
+      bottom: 16px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: rgba(233, 236, 239, 0.55);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+  <div id="root" class="widget" data-theme="dark" data-layout="minimal">
+    <div class="pill">
+      <span class="pill-dot" id="pillDot"></span>
+      <span class="pill-pct" id="pillPct">30%</span>
+      <span class="pill-label" id="pillLabel">5h</span>
+      <button class="icon-btn no-drag">
+        <svg viewBox="0 0 24 24" width="12" height="12"><path fill="currentColor" d="M7 14l5-5 5 5z"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="caption">Minimal mode — worst limit, at a glance</div>
+
+  <script>
+    const TIMELINE = [
+      { t: 0,   pct: 30,  label: '5h' },
+      { t: 1.0, pct: 55,  label: '5h' },
+      { t: 2.0, pct: 78,  label: '5h' },
+      { t: 3.0, pct: 91,  label: '5h' },
+      { t: 4.5, pct: 91,  label: '5h' },
+      { t: 5.0, pct: 30,  label: '5h' },
+    ];
+    const WARN = 75, CRIT = 90;
+
+    function sev(p) { return p >= CRIT ? 'critical' : p >= WARN ? 'warn' : ''; }
+    function lerp(a, b, t) { return a + (b - a) * t; }
+    function ease(t) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
+
+    function stateAt(time) {
+      let prev = TIMELINE[0], next = TIMELINE[TIMELINE.length - 1];
+      for (let i = 0; i < TIMELINE.length - 1; i++) {
+        if (TIMELINE[i].t <= time && TIMELINE[i + 1].t > time) {
+          prev = TIMELINE[i];
+          next = TIMELINE[i + 1];
+          break;
+        }
+      }
+      const span = next.t - prev.t;
+      const lt = span > 0 ? (time - prev.t) / span : 1;
+      const eased = ease(Math.max(0, Math.min(1, lt)));
+      return { pct: lerp(prev.pct, next.pct, eased), label: prev.label };
+    }
+
+    function render(state) {
+      const pct = Math.round(state.pct);
+      document.getElementById('pillPct').textContent = pct + '%';
+      document.getElementById('pillLabel').textContent = state.label;
+      document.getElementById('pillDot').className = 'pill-dot ' + sev(pct);
+    }
+
+    window.setFrameTime = function (t) { render(stateAt(t)); };
+    render(stateAt(0));
+  </script>
+</body>
+</html>

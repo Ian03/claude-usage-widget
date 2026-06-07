@@ -1,12 +1,7 @@
-// Headless Electron + gifenc → assets/demo.gif.
-//
-// We load renderer/demo.html (a self-contained, IPC-free clone of the widget
-// driven by a scripted timeline), drive the timeline via window.setFrameTime,
-// capture each frame with webContents.capturePage(), and assemble into a
-// looping GIF. The result is the exact production widget rendering, not a
-// mockup — so what users see in the README is what they get after install.
+// Headless Electron + gifenc → assets/demo-pill.gif.
+// Same pattern as build-demo-gif.js, but loads renderer/demo-pill.html so
+// the README can show the minimal/pill mode in motion.
 
-// Self-launch under the real Electron runtime if we were invoked as plain Node.
 if (!process.versions.electron) {
   delete process.env.ELECTRON_RUN_AS_NODE;
   const { spawn } = require('child_process');
@@ -22,13 +17,13 @@ const path = require('path');
 const fs = require('fs');
 
 const FPS = 15;
-const DURATION_S = 6;
-const TOTAL_FRAMES = FPS * DURATION_S;
+const DURATION_S = 5.5;
+const TOTAL_FRAMES = Math.round(FPS * DURATION_S);
 const FRAME_INTERVAL_MS = 1000 / FPS;
-const WIDTH = 340;
-const HEIGHT = 360;
+const WIDTH = 360;
+const HEIGHT = 180;
 
-const OUTPUT_PATH = path.join(__dirname, '..', 'assets', 'demo.gif');
+const OUTPUT_PATH = path.join(__dirname, '..', 'assets', 'demo-pill.gif');
 
 app.disableHardwareAcceleration();
 
@@ -47,8 +42,7 @@ async function buildGif() {
     },
   });
 
-  await win.loadFile(path.join(__dirname, '..', 'renderer', 'demo.html'));
-  // Give layout + fonts a beat to settle.
+  await win.loadFile(path.join(__dirname, '..', 'renderer', 'demo-pill.html'));
   await new Promise((r) => setTimeout(r, 500));
 
   const frames = [];
@@ -56,29 +50,23 @@ async function buildGif() {
   for (let i = 0; i < TOTAL_FRAMES; i++) {
     const t = i / FPS;
     await win.webContents.executeJavaScript(`window.setFrameTime(${t});`);
-    // Two animation frames so the CSS transitions tick.
     await new Promise((r) => setTimeout(r, 40));
     const img = await win.webContents.capturePage();
     const size = img.getSize();
-    const bgra = img.getBitmap(); // Buffer, BGRA on Windows
+    const bgra = img.getBitmap();
     const rgba = bgraToRgba(bgra);
     frames.push({ rgba, width: size.width, height: size.height });
     if (i % 10 === 0) process.stdout.write(`  frame ${i}/${TOTAL_FRAMES}\r`);
   }
   console.log(`  frame ${TOTAL_FRAMES}/${TOTAL_FRAMES}  `);
 
-  // Encode + write FIRST, then destroy the window. Electron 39 can crash
-  // during the post-capture cleanup if the window is destroyed while
-  // gifenc is being dynamically imported (DisallowJavascriptExecutionScope).
-  // gifenc is ESM-only — load via dynamic import from this CJS file.
-  // This installed version wraps everything under .default.
+  // Encode + write FIRST, then close the window. Electron 39 sometimes
+  // crashes during the post-capture JS-execution scope teardown if the
+  // window is destroyed while gifenc is being dynamically imported.
   const gifenc = await import('gifenc');
   const { GIFEncoder, quantize, applyPalette } = gifenc.default || gifenc;
 
   const encoder = GIFEncoder();
-  // Single shared palette derived from the first frame — keeps file small
-  // and avoids palette flicker. The widget's color set is small enough that
-  // 64 entries handles the gradient + accent + state colors comfortably.
   const palette = quantize(frames[0].rgba, 128, { format: 'rgb444' });
 
   for (const frame of frames) {
@@ -102,10 +90,10 @@ async function buildGif() {
 function bgraToRgba(bgra) {
   const out = Buffer.alloc(bgra.length);
   for (let i = 0; i < bgra.length; i += 4) {
-    out[i] = bgra[i + 2];     // R
-    out[i + 1] = bgra[i + 1]; // G
-    out[i + 2] = bgra[i];     // B
-    out[i + 3] = bgra[i + 3]; // A
+    out[i] = bgra[i + 2];
+    out[i + 1] = bgra[i + 1];
+    out[i + 2] = bgra[i];
+    out[i + 3] = bgra[i + 3];
   }
   return out;
 }
