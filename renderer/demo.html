@@ -52,6 +52,50 @@
         <span id="lastUpdated">Updated just now</span>
       </div>
     </div>
+
+    <!-- Claw'd reacts to the worst-limit severity. Mood is set via
+         root.dataset.mascotMood in the render() loop below. -->
+    <div class="mascot" id="mascot" title="Claw'd">
+      <div class="mascot-zzz" aria-hidden="true">
+        <span class="z" style="--zd:0s">z</span>
+        <span class="z" style="--zd:-0.8s">Z</span>
+        <span class="z" style="--zd:-1.6s">Z</span>
+      </div>
+      <div class="mascot-walk">
+        <span class="panic-mark">!</span>
+        <span class="panic-mark">!</span>
+        <span class="panic-mark">!</span>
+        <div class="mascot-sweat" aria-hidden="true">
+          <svg viewBox="0 0 12 16" width="18" height="24">
+            <defs>
+              <radialGradient id="sweat-grad-demo" cx="0.35" cy="0.65" r="0.55">
+                <stop offset="0%"  stop-color="#eaf5ff"/>
+                <stop offset="55%" stop-color="#5ec0ff"/>
+                <stop offset="100%" stop-color="#1e7fc8"/>
+              </radialGradient>
+            </defs>
+            <path d="M 6 1 C 1.5 6 0.5 11 1.5 13.5 A 5 5 0 0 0 10.5 13.5 C 11.5 11 10.5 6 6 1 Z"
+                  fill="url(#sweat-grad-demo)" stroke="#1565a3" stroke-width="0.5"/>
+            <ellipse cx="4" cy="10.5" rx="1.4" ry="2" fill="#fff" opacity="0.6"/>
+          </svg>
+        </div>
+        <div class="mascot-bob">
+          <svg viewBox="0 0 14 11" width="40" height="32" shape-rendering="crispEdges">
+            <rect class="body" x="1" y="0" width="12" height="8" fill="currentColor"/>
+            <rect class="bump" x="0" y="2" width="1" height="4" fill="currentColor"/>
+            <rect class="bump" x="13" y="2" width="1" height="4" fill="currentColor"/>
+            <rect class="eye" x="3" y="2" width="1" height="2" fill="#000"/>
+            <rect class="eye" x="10" y="2" width="1" height="2" fill="#000"/>
+            <line class="eye-shut" x1="2.2" y1="3.2" x2="5" y2="3.2" stroke="#000" stroke-width="0.8" stroke-linecap="round"/>
+            <line class="eye-shut" x1="9" y1="3.2" x2="11.8" y2="3.2" stroke="#000" stroke-width="0.8" stroke-linecap="round"/>
+            <rect class="leg" x="2" y="8" width="1" height="3" fill="currentColor"/>
+            <rect class="leg" x="5" y="8" width="1" height="3" fill="currentColor"/>
+            <rect class="leg" x="8" y="8" width="1" height="3" fill="currentColor"/>
+            <rect class="leg" x="11" y="8" width="1" height="3" fill="currentColor"/>
+          </svg>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="toast" id="toast">
@@ -131,6 +175,11 @@
       }).join('');
       root.innerHTML = html;
       dot.className = `dot ${worst}`;
+
+      // Drive Claw'd's mood from the worst severity. He paces casually at
+      // ok, hurries at warn (with sweat), panic-skips at critical with
+      // floating "!" marks.
+      document.getElementById('root').dataset.mascotMood = worst;
 
       const toast = document.getElementById('toast');
       const title = document.getElementById('toastTitle');

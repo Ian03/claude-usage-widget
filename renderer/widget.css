@@ -143,8 +143,6 @@ header.drag {
 .graph-empty { font-size: calc(10px * var(--font-scale)); color: var(--fg-dim); padding: 14px 0; text-align: center; }
 
 .footer {
-  position: relative;
-  z-index: 2;
   display: flex; align-items: center; gap: 6px; padding-top: 6px;
   border-top: 1px solid var(--border);
   font-size: calc(10px * var(--font-scale)); color: var(--fg-dim);
@@ -185,16 +183,23 @@ header.drag {
    the bottom-corner border-radius clip. */
 .mascot {
   position: absolute;
-  bottom: 6px;
+  /* Walks the bottom strip created by the widget's bottom padding (added
+     below when Claw'd is enabled). Lives entirely below the footer so
+     he never overlaps body text or footer chrome. */
+  bottom: 4px;
   left: 0;
   width: 40px;
   height: 32px;
   color: var(--mascot-color, #d7613d);
   pointer-events: auto;
   cursor: pointer;
-  /* Below the footer text so "Updated 1m ago" stays readable when Claw'd
-     walks past it; still above the body background. */
   z-index: 1;
+}
+/* Reserve a 38px bottom strip in the widget for Claw'd to walk in,
+   below the footer. Skipped when the mascot is toggled off or in any
+   layout that hides him, so the widget doesn't carry dead space. */
+.widget:not([data-no-mascot]):not([data-layout="minimal"]):not([data-layout="essential"]) {
+  padding-bottom: 38px;
 }
 .widget[data-no-mascot] .mascot,
 .widget[data-layout="minimal"] .mascot,
