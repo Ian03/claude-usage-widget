@@ -19,11 +19,26 @@ const WINDOW_MS = {
 };
 
 function readToken() {
-  const raw = fs.readFileSync(CREDS_PATH, 'utf8');
+  let raw;
+  try {
+    raw = fs.readFileSync(CREDS_PATH, 'utf8');
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      // Distinct from AUTH_EXPIRED: the file has never existed, so the user
+      // has not signed in via Claude Code yet. The UI shows an onboarding
+      // message instead of the generic "offline" badge.
+      const err = new Error('No Claude Code login found. Run `claude` in a terminal to sign in.');
+      err.code = 'NO_CREDS';
+      throw err;
+    }
+    throw e;
+  }
   const creds = JSON.parse(raw);
   const oauth = creds.claudeAiOauth;
   if (!oauth || !oauth.accessToken) {
-    throw new Error('claudeAiOauth.accessToken missing from ~/.claude/.credentials.json');
+    const err = new Error('claudeAiOauth.accessToken missing from ~/.claude/.credentials.json');
+    err.code = 'NO_CREDS';
+    throw err;
   }
   return {
     token: oauth.accessToken,

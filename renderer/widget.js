@@ -135,7 +135,24 @@ function render(payload) {
   }
 
   if (!data || !data.limits) {
-    limitsEl.innerHTML = '<div class="limit-label" style="opacity:0.7">Waiting for first fetch…</div>';
+    limitsEl.innerHTML = renderEmptyState(error);
+    statusDot.className = `dot ${error ? 'stale' : ''}`;
+    lastUpdatedEl.textContent = '';
+    pillPct.textContent = '—';
+    pillLabel.textContent = '';
+    pillDot.className = `pill-dot ${error ? 'stale' : ''}`;
+    root.dataset.mascotMood = 'ok';
+    staleBadge.hidden = true;
+    const eb = errorBadgeFor(error);
+    errorBadge.hidden = eb.hidden;
+    if (!eb.hidden) {
+      errorBadge.textContent = eb.label;
+      errorBadge.title = eb.title;
+      errorBadge.classList.toggle('error', eb.kind === 'error');
+      errorBadge.classList.toggle('warn', eb.kind === 'warn');
+      errorBadge.classList.toggle('soft', eb.kind === 'soft');
+    }
+    renderGraph();
     return;
   }
 
@@ -193,12 +210,52 @@ function render(payload) {
   renderGraph();
 }
 
+// Renders the body when there's no usage data yet. Distinguishes "no Claude
+// Code login on this machine" (onboarding) from "first poll hasn't landed yet"
+// from "something failed" — so a new user sees what to do instead of a vague
+// spinner.
+function renderEmptyState(error) {
+  if (error && error.code === 'NO_CREDS') {
+    return `
+      <div class="empty-state">
+        <div class="empty-title">No Claude Code login found</div>
+        <div class="empty-body">Run <code>claude</code> in a terminal and sign in. The widget will pick up your usage automatically.</div>
+      </div>
+    `;
+  }
+  if (error && error.code === 'AUTH_EXPIRED') {
+    return `
+      <div class="empty-state">
+        <div class="empty-title">Sign-in expired</div>
+        <div class="empty-body">Run <code>claude</code> in a terminal once to refresh your token.</div>
+      </div>
+    `;
+  }
+  if (error) {
+    return `
+      <div class="empty-state">
+        <div class="empty-title">Can't reach Anthropic right now</div>
+        <div class="empty-body">${escapeHtml(error.message || 'Network error — the widget will retry shortly.')}</div>
+      </div>
+    `;
+  }
+  return '<div class="limit-label" style="opacity:0.7">Waiting for first fetch…</div>';
+}
+
 // The error-badge label needs to tell the user what's actually going on.
 // "OFFLINE" for a 429 made people think the widget was broken. Each error
 // class gets its own label + tooltip; rate-limit is warn-colored, not red,
 // because it isn't an error — it's "please wait, the API throttled us."
 function errorBadgeFor(error) {
   if (!error) return { hidden: true };
+  if (error.code === 'NO_CREDS') {
+    return {
+      hidden: false,
+      label: 'sign in',
+      kind: 'warn',
+      title: 'No Claude Code login found. Run `claude` in a terminal and sign in — the widget will pick up your usage on the next poll.',
+    };
+  }
   if (error.code === 'AUTH_EXPIRED') {
     return {
       hidden: false,

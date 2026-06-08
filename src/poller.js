@@ -31,7 +31,7 @@ class Poller {
     this.stale = false;
   }
 
-  start() { this.schedule(2_000); }
+  start() { this.schedule(500); }
   stop() { if (this.timer) clearTimeout(this.timer); this.timer = null; }
 
   schedule(delay) {
@@ -64,7 +64,12 @@ class Poller {
       let delay;
       if (err.code === 'RATE_LIMITED') delay = err.retryAfter * 1000;
       else if (err.code === 'AUTH_EXPIRED') delay = 5 * 60_000;
-      else delay = Math.min(60_000 * 2 ** Math.min(this.consecutiveErrors, 5), 30 * 60_000);
+      else if (err.code === 'NO_CREDS') delay = 15_000;
+      // First failure retries quickly (8s) so a user who just signed in sees
+      // the widget pick up almost immediately. Subsequent failures back off
+      // exponentially up to 30 min, same ceiling as before.
+      else if (this.consecutiveErrors === 1) delay = 8_000;
+      else delay = Math.min(15_000 * 2 ** Math.min(this.consecutiveErrors - 1, 7), 30 * 60_000);
       this.schedule(delay);
     }
   }
