@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node scripts/launch.js",
     "dev": "node scripts/launch.js --dev",
-    "test": "node --test tests/*.test.js",
+    "test": "node --test tests/normalize.test.js tests/updater.test.js",
     "icons": "node scripts/build-icon.js",
     "demo-gif": "node scripts/build-demo-gif.js",
     "pill-gif": "node scripts/build-pill-gif.js",
