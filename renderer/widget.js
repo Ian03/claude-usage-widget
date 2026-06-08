@@ -13,6 +13,7 @@ const graphSub = $('graphSub');
 const pillDot = $('pillDot');
 const pillPct = $('pillPct');
 const pillLabel = $('pillLabel');
+const updateLink = $('updateLink');
 
 let currentCfg = null;
 let lastData = null;
@@ -377,6 +378,18 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
 
+// Shown only when the update checker has reported a newer release. Clicking
+// opens the GitHub release page in the user's default browser — we don't
+// auto-download because the portable EXE intentionally doesn't self-rewrite.
+function renderUpdate(info) {
+  if (!updateLink) return;
+  if (!info || !info.available) { updateLink.hidden = true; updateLink.removeAttribute('href'); return; }
+  updateLink.hidden = false;
+  updateLink.textContent = `↑ v${info.latestVersion}`;
+  updateLink.title = `New release available — click to open the GitHub release page for v${info.latestVersion}.`;
+  updateLink.dataset.url = info.releaseUrl || '';
+}
+
 async function init() {
   const cfg = await window.api.getConfig();
   applyTheme(cfg);
@@ -394,6 +407,17 @@ async function init() {
   window.api.onConfig((newCfg) => {
     applyTheme(newCfg);
     if (lastData) render({ data: lastData, stale: false, error: null });
+  });
+
+  // Show the update badge if main already has a result (cached from a check
+  // earlier in this session) and on every fresh check after that.
+  const cached = await window.api.getUpdate?.();
+  renderUpdate(cached);
+  window.api.onUpdate?.(renderUpdate);
+  updateLink?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const url = updateLink.dataset.url;
+    if (url) window.api.openExternal?.(url);
   });
 
   // Claw'd: click to hop (or wake him up grumpy if paused), wave on reset.

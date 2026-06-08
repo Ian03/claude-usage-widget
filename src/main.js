@@ -5,6 +5,7 @@ const config = require('./config');
 const { Poller } = require('./poller');
 const { History } = require('./history');
 const icon = require('./icon');
+const { checkForUpdate, CHECK_INTERVAL_MS } = require('./updater');
 
 let widgetWindow = null;
 let settingsWindow = null;
@@ -16,6 +17,8 @@ let lastUsage = null;
 let lastError = null;
 let activityState = 'active';
 let notifiedFor = new Set();
+let lastUpdateInfo = null;
+let updateTimer = null;
 
 function createWidget() {
   const display = screen.getPrimaryDisplay();
@@ -203,6 +206,30 @@ function rebuildTrayMenu() {
       click: (item) => { cfg.openAtLogin = item.checked; syncLoginItem(); config.save(cfg); broadcast('config:changed', cfg); },
     },
     { type: 'separator' },
+    {
+      label: lastUpdateInfo?.available
+        ? `Get v${lastUpdateInfo.latestVersion} (you have v${app.getVersion()})`
+        : 'Check for updates',
+      click: () => {
+        if (lastUpdateInfo?.available && lastUpdateInfo.releaseUrl) {
+          shell.openExternal(lastUpdateInfo.releaseUrl);
+        } else {
+          runUpdateCheck({ manual: true });
+        }
+      },
+    },
+    {
+      label: 'Auto-check for updates',
+      type: 'checkbox',
+      checked: cfg.checkForUpdates !== false,
+      click: (item) => {
+        cfg.checkForUpdates = item.checked;
+        config.save(cfg);
+        broadcast('config:changed', cfg);
+        scheduleUpdateChecks();
+      },
+    },
+    { type: 'separator' },
     { label: 'Quit', click: () => { app.isQuitting = true; app.quit(); } },
   ]);
   tray.setContextMenu(menu);
@@ -280,6 +307,35 @@ function runResetHook(reset) {
   }
 }
 
+// Pings GitHub Releases once a day to see if a newer tag exists. The renderer
+// shows a discreet "v0.2.11 available" link in the footer when one does — no
+// auto-download, since the portable EXE intentionally doesn't self-rewrite.
+async function runUpdateCheck({ manual = false } = {}) {
+  if (!cfg.checkForUpdates && !manual) return;
+  try {
+    const info = await checkForUpdate(app.getVersion());
+    lastUpdateInfo = info;
+    broadcast('update:available', info);
+    rebuildTrayMenu();
+    if (manual && info && !info.available) {
+      notify('You\'re up to date', `Running v${app.getVersion()} — the latest release.`);
+    }
+  } catch (e) {
+    // Network blips and 403 rate-limits are expected; surface nothing.
+    if (manual) notify('Update check failed', e.message || 'Could not reach GitHub.');
+  }
+}
+
+function scheduleUpdateChecks() {
+  if (updateTimer) clearInterval(updateTimer);
+  if (!cfg.checkForUpdates) return;
+  // Only fire the deferred-first-check on cold start, not every time the
+  // settings panel toggles something — otherwise twiddling the UI would
+  // spam the GitHub API. The 24 h interval still gets rebuilt either way.
+  if (!lastUpdateInfo) setTimeout(() => runUpdateCheck(), 5_000);
+  updateTimer = setInterval(() => runUpdateCheck(), CHECK_INTERVAL_MS);
+}
+
 function updateActivityState() {
   const idleSec = powerMonitor.getSystemIdleTime();
   let next;
@@ -335,6 +391,7 @@ app.whenReady().then(() => {
   setInterval(updateActivityState, 30_000);
   powerMonitor.on('resume', () => poller?.notifyWake());
   powerMonitor.on('unlock-screen', () => poller?.notifyWake());
+  scheduleUpdateChecks();
 
   ipcMain.handle('config:get', () => cfg);
   ipcMain.handle('config:update', async (_evt, patch) => {
@@ -376,6 +433,15 @@ app.whenReady().then(() => {
   ipcMain.handle('settings:close', () => settingsWindow?.close());
   ipcMain.handle('app:quit', () => { app.isQuitting = true; app.quit(); });
   ipcMain.handle('shell:openCreds', () => shell.openPath(require('./usage').CREDS_PATH));
+  ipcMain.handle('shell:openExternal', (_evt, url) => {
+    // Whitelist: only open GitHub release pages for this repo. Prevents the
+    // renderer from coaxing the main process into opening arbitrary URLs.
+    if (typeof url !== 'string') return;
+    if (!url.startsWith('https://github.com/projectvelox/claude-usage-widget/')) return;
+    shell.openExternal(url);
+  });
+  ipcMain.handle('update:get', () => lastUpdateInfo);
+  ipcMain.handle('update:check', () => runUpdateCheck({ manual: true }));
 });
 
 // Pill mode uses a small fixed-size window so it actually feels minimized
@@ -386,6 +452,7 @@ function applyConfig() {
   syncLoginItem();
   nativeTheme.themeSource = cfg.theme;
   rebuildTrayMenu();
+  scheduleUpdateChecks();
   if (!widgetWindow) return;
   widgetWindow.setOpacity(cfg.opacity);
   widgetWindow.setAlwaysOnTop(cfg.alwaysOnTop, 'screen-saver');

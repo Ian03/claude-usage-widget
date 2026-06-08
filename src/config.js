@@ -50,6 +50,7 @@ const DEFAULTS = {
   // Behavior
   openAtLogin: false,
   openMinimized: false,
+  checkForUpdates: true,
 
   // Tray icon
   trayIconStyle: 'bars', // bars | battery | gauge | minimal | dynamic

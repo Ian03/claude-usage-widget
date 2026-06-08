@@ -166,6 +166,17 @@ header.drag {
   font-size: calc(10px * var(--font-scale));
 }
 
+.update-link {
+  margin-left: auto;
+  padding: 1px 7px; border-radius: 999px;
+  background: rgba(56, 174, 235, 0.16);
+  color: var(--accent);
+  font-size: calc(9.5px * var(--font-scale));
+  text-decoration: none; font-weight: 600;
+  white-space: nowrap;
+}
+.update-link:hover { background: rgba(56, 174, 235, 0.28); }
+
 /* Compact layouts */
 .widget[data-layout="compact"] .limit-meta { display: none; }
 .widget[data-layout="compact"] .limits { gap: 6px; }

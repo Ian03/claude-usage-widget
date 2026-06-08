@@ -34,6 +34,7 @@ const BINDINGS = [
   { id: 'onReset_seven_day_opus', path: ['onReset', 'seven_day_opus'], type: 'value' },
   { id: 'openAtLogin', path: ['openAtLogin'], type: 'checked' },
   { id: 'openMinimized', path: ['openMinimized'], type: 'checked' },
+  { id: 'checkForUpdates', path: ['checkForUpdates'], type: 'checked' },
 ];
 
 function getPath(obj, path) {
@@ -96,6 +97,24 @@ async function init() {
   $('openCreds').addEventListener('click', () => window.api.openCreds());
   $('quit').addEventListener('click', () => window.api.quit());
   window.api.onConfig((newCfg) => { cfg = newCfg; load(); });
+
+  const checkBtn = $('checkUpdateNow');
+  const status = $('updateStatus');
+  if (checkBtn && status) {
+    const renderUpdateStatus = (info) => {
+      if (!info) { status.textContent = 'Never checked yet.'; return; }
+      if (info.available) status.textContent = `v${info.latestVersion} is available — see the header link to download.`;
+      else if (info.latestVersion) status.textContent = `You're on the latest version (v${info.latestVersion}).`;
+      else status.textContent = '';
+    };
+    window.api.getUpdate?.().then(renderUpdateStatus);
+    window.api.onUpdate?.(renderUpdateStatus);
+    checkBtn.addEventListener('click', async () => {
+      checkBtn.disabled = true;
+      status.textContent = 'Checking…';
+      try { await window.api.checkUpdate?.(); } finally { checkBtn.disabled = false; }
+    });
+  }
 }
 
 init();

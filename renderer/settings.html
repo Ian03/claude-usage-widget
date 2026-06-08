@@ -130,6 +130,15 @@
     </section>
 
     <section>
+      <h2>Updates</h2>
+      <div class="row toggle"><label for="checkForUpdates">Check GitHub for new releases (once a day)</label><input type="checkbox" id="checkForUpdates"></div>
+      <div class="actions-row">
+        <button id="checkUpdateNow">Check now</button>
+        <span class="muted" id="updateStatus"></span>
+      </div>
+    </section>
+
+    <section>
       <h2>About</h2>
       <p class="muted">Reads OAuth token from <code>~/.claude/.credentials.json</code>. Token refresh is picked up automatically on the next poll.</p>
       <div class="actions-row">
