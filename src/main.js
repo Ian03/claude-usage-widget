@@ -95,13 +95,20 @@ function createWidget() {
   // stuck or unclickable. Debounce so we only write once the user lets go.
   let moveSaveTimer = null;
   widgetWindow.on('moved', () => {
+    if (!widgetWindow || widgetWindow.isDestroyed()) return;
     const [nx, ny] = widgetWindow.getPosition();
     cfg.position = { x: nx, y: ny };
     if (moveSaveTimer) clearTimeout(moveSaveTimer);
     moveSaveTimer = setTimeout(() => { moveSaveTimer = null; config.save(cfg); }, 800);
   });
 
-  widgetWindow.on('closed', () => { widgetWindow = null; });
+  widgetWindow.on('closed', () => {
+    // Cancel any in-flight position save — without this, a debounced save can
+    // fire after `widgetWindow` is null and overwrite a no-longer-relevant
+    // position to disk.
+    if (moveSaveTimer) { clearTimeout(moveSaveTimer); moveSaveTimer = null; }
+    widgetWindow = null;
+  });
 }
 
 function createSettings() {
@@ -470,6 +477,7 @@ app.whenReady().then(() => {
   ipcMain.handle('settings:open', () => createSettings());
   ipcMain.handle('settings:close', () => settingsWindow?.close());
   ipcMain.handle('app:quit', () => { app.isQuitting = true; app.quit(); });
+  ipcMain.handle('window:hide', () => widgetWindow?.hide());
   ipcMain.handle('shell:openCreds', () => shell.openPath(require('./usage').CREDS_PATH));
   ipcMain.handle('shell:openExternal', (_evt, url) => {
     // Whitelist: only open GitHub release pages for this repo. Prevents the
@@ -525,4 +533,10 @@ app.on('window-all-closed', (e) => {
   if (process.platform !== 'darwin') e.preventDefault?.();
 });
 
-app.on('before-quit', () => { app.isQuitting = true; });
+app.on('before-quit', () => {
+  app.isQuitting = true;
+  // Hygiene: stop background work so quit can complete without dangling
+  // timers calling into a half-torn-down app.
+  if (updateTimer) { clearInterval(updateTimer); updateTimer = null; }
+  poller?.stop();
+});

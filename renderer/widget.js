@@ -472,11 +472,27 @@ async function init() {
   $('refreshBtn').addEventListener('click', async () => {
     const btn = $('refreshBtn');
     btn.classList.add('spinning');
-    await window.api.refresh();
+    const result = await window.api.refresh();
+    // The poller debounces manual refresh to 10s. Without surfacing this, the
+    // spinner runs for a moment and the user wonders why the timestamp didn't
+    // change. A quick title-hint + brief shake gives them the signal that the
+    // click was acknowledged but skipped.
+    if (result && result.debounced) {
+      const waitSec = Math.max(1, Math.ceil(result.waitMs / 1000));
+      btn.title = `Just refreshed — try again in ${waitSec}s`;
+      btn.classList.add('debounced');
+      setTimeout(() => {
+        btn.classList.remove('debounced');
+        btn.title = 'Refresh';
+      }, 1200);
+    }
     setTimeout(() => btn.classList.remove('spinning'), 500);
   });
   $('settingsBtn').addEventListener('click', () => window.api.openSettings());
-  $('closeBtn').addEventListener('click', () => window.api.quit());
+  // Header X hides the widget to the tray instead of quitting — the tooltip
+  // already says "Hide", and most users who click X expect to dismiss the
+  // window, not lose the tray icon and have to relaunch from Start menu.
+  $('closeBtn').addEventListener('click', () => window.api.hideWidget());
 
   $('minimizeBtn').addEventListener('click', () => {
     const keep = currentCfg.layout === 'minimal' ? currentCfg.lastExpandedLayout : currentCfg.layout;

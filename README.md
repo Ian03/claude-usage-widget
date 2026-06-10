@@ -23,6 +23,7 @@ The same bars as **Settings → Usage** on claude.ai, plus things they don't:
 - Threshold notifications and shell hooks that fire when a limit resets
 - A **pill / minimal mode** that collapses the widget to a tiny ~156×44 capsule showing just the worst-utilized limit %, ideal for non-developers who want ambient awareness without giving up screen real estate
 - **Claw'd**, a pixel-art crab mascot that walks the widget's bottom edge and reacts to your usage — strolls when you're fine, panic-skips with "!" marks at critical, sleeps with floating Zs when rate-limited, and gets grumpy if you click him while he's napping
+- **In-app update check** — once a day the widget pings GitHub Releases and surfaces a small `↑ v0.2.X` link in the footer when a newer build is out, so you never run a stale version without knowing
 
 ## How it's different
 
@@ -116,7 +117,7 @@ npm start
 ```
 
 ```powershell
-npm test                 # snapshot tests for the parser
+npm test                 # parser snapshot tests + updater semver tests + display geometry tests
 npm run icons            # regenerate the tray + window icons
 npm run demo-gif         # regenerate assets/demo.gif (main demo)
 npm run pill-gif         # regenerate assets/demo-pill.gif (minimal mode demo)
@@ -271,6 +272,8 @@ src/
   history.js    Append-only sample store, 7-day trim
   config.js     Persisted settings + deep merge
   icon.js       Pure-Node PNG encoder + 4 tray icon styles + dynamic gauge
+  updater.js    Daily check against GitHub Releases, semver compare, footer badge feed
+  geom.js       Pure rect-overlap helpers for rescuing the widget when a monitor disconnects
 renderer/
   widget.html / .css / .js     Always-on-top floating widget + SVG history graph
   settings.html / .css / .js   Live-editing settings panel
@@ -280,6 +283,8 @@ assets/
   claw-d-states.html           Self-contained Claw'd mood preview (open in any browser)
 tests/
   normalize.test.js   Snapshot tests against the live response shape
+  updater.test.js     Semver parsing + comparison for the GitHub Releases check
+  geom.test.js        Display-rect overlap math (monitor disconnect rescue)
 scripts/
   launch.js             Strips ELECTRON_RUN_AS_NODE before spawning the GUI
   build-icon.js         Pre-bakes tray + window + preview icons

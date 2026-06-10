@@ -84,7 +84,18 @@ async function fetchUsage({ retryOnAuth = true } = {}) {
     throw err;
   }
 
-  const data = await res.json();
+  let data;
+  try {
+    data = await res.json();
+  } catch (e) {
+    // A 2xx response with a malformed body (proxy interference, partial
+    // download, surprise HTML error page) used to crash the poller's tick.
+    // Surface as a normal HTTP_ERROR so the existing backoff applies.
+    const err = new Error('Server returned a non-JSON response.');
+    err.code = 'HTTP_ERROR';
+    err.status = res.status;
+    throw err;
+  }
   return normalize(data, { subscriptionType, rateLimitTier });
 }
 

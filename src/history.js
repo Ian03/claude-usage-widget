@@ -14,12 +14,21 @@ class History {
   }
 
   load() {
+    let raw;
     try {
-      const raw = fs.readFileSync(this.filePath, 'utf8');
+      raw = fs.readFileSync(this.filePath, 'utf8');
+    } catch (err) {
+      if (err.code !== 'ENOENT') console.error('History read failed:', err);
+      return;
+    }
+    try {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed.samples)) this.samples = parsed.samples;
     } catch (err) {
-      if (err.code !== 'ENOENT') console.error('History load failed:', err);
+      // Corrupted history. Move aside instead of letting the next save()
+      // silently overwrite seven days of samples with an empty file.
+      console.error('History parse failed; preserving as .corrupt and starting fresh:', err);
+      try { fs.renameSync(this.filePath, `${this.filePath}.corrupt-${Date.now()}`); } catch (e) { console.error('Could not rename corrupt history:', e); }
     }
   }
 

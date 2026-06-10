@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('api', {
   openSettings: () => ipcRenderer.invoke('settings:open'),
   closeSettings: () => ipcRenderer.invoke('settings:close'),
   quit: () => ipcRenderer.invoke('app:quit'),
+  hideWidget: () => ipcRenderer.invoke('window:hide'),
   openCreds: () => ipcRenderer.invoke('shell:openCreds'),
   openExternal: (url) => ipcRenderer.invoke('shell:openExternal', url),
   getUpdate: () => ipcRenderer.invoke('update:get'),

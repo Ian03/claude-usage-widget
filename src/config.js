@@ -64,11 +64,6 @@ const DEFAULTS = {
     seven_day_opus: '',
   },
 
-  pollOverrides: {
-    active: null,
-    idle: null,
-    deepIdle: null,
-  },
 };
 
 let cachedPath = null;
@@ -83,11 +78,22 @@ function historyPath() {
 }
 
 function load() {
+  const p = configPath();
+  let raw;
   try {
-    const raw = fs.readFileSync(configPath(), 'utf8');
+    raw = fs.readFileSync(p, 'utf8');
+  } catch (err) {
+    if (err.code !== 'ENOENT') console.error('Config read failed:', err);
+    return structuredClone(DEFAULTS);
+  }
+  try {
     return deepMerge(DEFAULTS, JSON.parse(raw));
   } catch (err) {
-    if (err.code !== 'ENOENT') console.error('Config load failed:', err);
+    // Corrupted JSON (partial write, encoding issue). Move the bad file aside
+    // so the next save() doesn't overwrite the user's real settings with
+    // defaults — they can recover by hand from the .corrupt sibling.
+    console.error('Config parse failed; preserving as .corrupt and using defaults:', err);
+    try { fs.renameSync(p, `${p}.corrupt-${Date.now()}`); } catch (e) { console.error('Could not rename corrupt config:', e); }
     return structuredClone(DEFAULTS);
   }
 }
