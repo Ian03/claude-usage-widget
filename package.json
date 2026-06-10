@@ -35,6 +35,12 @@
   "overrides": {
     "tar": ">=7.5.11"
   },
+  "auto-changelog": {
+    "template": "keepachangelog",
+    "unreleased": true,
+    "commitLimit": false,
+    "ignoreCommitPattern": "^docs: update CHANGELOG"
+  },
   "build": {
     "appId": "com.claude-usage-widget",
     "productName": "Claude Usage Widget",

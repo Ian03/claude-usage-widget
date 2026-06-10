@@ -314,6 +314,10 @@ scripts/
 
 See [open issues](../../issues) for the current state.
 
+## Changelog
+
+[CHANGELOG.md](CHANGELOG.md) is auto-regenerated from git history on every push to `main` by [`.github/workflows/changelog.yml`](.github/workflows/changelog.yml). Per-release notes (with download links and the SmartScreen blurb) live on the [Releases page](../../releases).
+
 ## Contributing
 
 PRs welcome — please skim [CONTRIBUTING.md](CONTRIBUTING.md) first. Security issues go through [SECURITY.md](SECURITY.md), not the public issue tracker.
