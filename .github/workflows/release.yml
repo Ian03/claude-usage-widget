@@ -20,6 +20,18 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      - name: Verify package.json version matches tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $tagVersion = "${{ github.ref_name }}" -replace '^v',''
+          $pkgVersion = (Get-Content package.json | ConvertFrom-Json).version
+          if ($tagVersion -ne $pkgVersion) {
+            Write-Error "Tag $($tagVersion) does not match package.json version $($pkgVersion). Bump package.json (or use ``npm version`` which does it for you), retag, push."
+            exit 1
+          }
+          Write-Output "OK: tag and package.json both at $pkgVersion"
+
       - name: Install
         run: npm ci
 
