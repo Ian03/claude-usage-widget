@@ -6,6 +6,7 @@ const { Poller } = require('./poller');
 const { History } = require('./history');
 const icon = require('./icon');
 const { checkForUpdate, CHECK_INTERVAL_MS } = require('./updater');
+const { isOnAnyDisplay } = require('./geom');
 
 let widgetWindow = null;
 let settingsWindow = null;
@@ -20,14 +21,46 @@ let notifiedFor = new Set();
 let lastUpdateInfo = null;
 let updateTimer = null;
 
+// "Is this rect on any currently-connected display?" — used to detect a
+// stranded widget after the user unplugs a monitor it was pinned to.
+function isOnVisibleDisplay(rect) {
+  return isOnAnyDisplay(rect, screen.getAllDisplays());
+}
+
+function defaultCorner(width) {
+  const { workArea } = screen.getPrimaryDisplay();
+  return { x: workArea.x + workArea.width - width - 24, y: workArea.y + 24 };
+}
+
+// Snaps the widget back to the primary monitor's top-right if its current
+// bounds are completely off-screen. Triggered on startup (createWidget clamps
+// the saved position) and at runtime on display-removed / metrics-changed.
+function rescueWindowIfOrphaned() {
+  if (!widgetWindow || widgetWindow.isDestroyed()) return;
+  const [x, y] = widgetWindow.getPosition();
+  const [width, height] = widgetWindow.getSize();
+  if (isOnVisibleDisplay({ x, y, width, height })) return;
+  const safe = defaultCorner(width);
+  widgetWindow.setBounds({ x: safe.x, y: safe.y, width, height });
+  cfg.position = { x: safe.x, y: safe.y };
+  config.save(cfg);
+}
+
 function createWidget() {
-  const display = screen.getPrimaryDisplay();
-  const { workArea } = display;
   const isMinimal = cfg.layout === 'minimal';
   const width = isMinimal ? 156 : cfg.size.width;
   const height = isMinimal ? 44 : 320;
-  const x = cfg.position.x ?? workArea.x + workArea.width - width - 24;
-  const y = cfg.position.y ?? workArea.y + 24;
+  const fallback = defaultCorner(width);
+  const savedX = cfg.position.x;
+  const savedY = cfg.position.y;
+  const hasSaved = savedX != null && savedY != null;
+  const savedRect = hasSaved ? { x: savedX, y: savedY, width, height } : null;
+  const usable = hasSaved && isOnVisibleDisplay(savedRect);
+  const x = usable ? savedX : fallback.x;
+  const y = usable ? savedY : fallback.y;
+  // If we just rescued an orphaned position, persist the rescue so the next
+  // launch doesn't try the dead coords again.
+  if (hasSaved && !usable) { cfg.position = { x, y }; config.save(cfg); }
 
   widgetWindow = new BrowserWindow({
     width, height, x, y,
@@ -391,6 +424,11 @@ app.whenReady().then(() => {
   setInterval(updateActivityState, 30_000);
   powerMonitor.on('resume', () => poller?.notifyWake());
   powerMonitor.on('unlock-screen', () => poller?.notifyWake());
+  // Recover from "user unplugged the 2nd monitor while the widget was pinned
+  // to it." display-removed fires when a monitor disconnects; metrics-changed
+  // covers DPI / resolution swaps that can also strand the window.
+  screen.on('display-removed', rescueWindowIfOrphaned);
+  screen.on('display-metrics-changed', rescueWindowIfOrphaned);
   scheduleUpdateChecks();
 
   ipcMain.handle('config:get', () => cfg);
