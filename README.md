@@ -116,6 +116,21 @@ npm install
 npm start
 ```
 
+**Branch model.** `main` is the production branch — every tag-push there cuts a public release. `dev` is the working branch where day-to-day commits land. Pushing to `dev` runs the full test suite and, if green, opens (or updates) a single "Promote dev → main" PR. Merging that PR is the only path code takes into production.
+
+```powershell
+git checkout dev                       # work here
+# edit, commit
+git push origin dev                    # CI runs tests, opens promote PR if green
+
+# when you're ready to release:
+gh pr merge <PR#> --merge              # promote dev → main
+git checkout main; git pull
+npm version patch                      # bumps + tests + tags + pushes; CI builds + publishes
+```
+
+`npm version` runs `npm test` before bumping (preversion hook) and `git push --follow-tags` after (postversion hook), so a single command takes you from "I have a fix on main" to "release is live."
+
 ```powershell
 npm test                 # parser snapshot tests + updater semver tests + display geometry tests
 npm run icons            # regenerate the tray + window icons
