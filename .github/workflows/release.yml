@@ -4,10 +4,17 @@ on:
   push:
     tags:
       - 'v*'
+  # Manual dispatch is allowed but only for the repo owner — this prevents a
+  # stranger from triggering a build + publish of an unsigned binary via fork.
   workflow_dispatch:
+
+# Apply the same restriction at job level so even if a future workflow event
+# is added, anything that isn't a tag-push or owner-dispatch is rejected.
 
 jobs:
   build-windows:
+    # Tag-push always runs. workflow_dispatch only runs for the repo owner.
+    if: github.event_name == 'push' || github.actor == github.repository_owner
     runs-on: windows-latest
     permissions:
       contents: write

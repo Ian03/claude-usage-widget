@@ -117,4 +117,4 @@ function nextResetMs(data) {
   return Number.isFinite(min) ? min : null;
 }
 
-module.exports = { Poller, INTERVALS };
+module.exports = { Poller, INTERVALS, nextResetMs };

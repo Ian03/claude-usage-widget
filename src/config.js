@@ -119,4 +119,4 @@ function deepMerge(base, override) {
   return out;
 }
 
-module.exports = { load, save, DEFAULTS, configPath, historyPath };
+module.exports = { load, save, deepMerge, DEFAULTS, configPath, historyPath };

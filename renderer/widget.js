@@ -306,6 +306,10 @@ function renderPill(data, stale, worstSeverity) {
   const worst = data.limits.reduce((a, b) => (a.utilization > b.utilization ? a : b));
   pillPct.textContent = `${Math.round(worst.utilization)}%`;
   pillLabel.textContent = shortLabel(worst);
+  // The pill label is text-overflow:ellipsis on narrow pills. Surface the full
+  // label as a tooltip so users can confirm which limit they're seeing without
+  // expanding the widget.
+  pillLabel.title = worst.label || '';
   pillDot.className = `pill-dot ${stale ? 'stale' : worstSeverity}`;
 }
 
@@ -472,21 +476,29 @@ async function init() {
   $('refreshBtn').addEventListener('click', async () => {
     const btn = $('refreshBtn');
     btn.classList.add('spinning');
-    const result = await window.api.refresh();
-    // The poller debounces manual refresh to 10s. Without surfacing this, the
-    // spinner runs for a moment and the user wonders why the timestamp didn't
-    // change. A quick title-hint + brief shake gives them the signal that the
-    // click was acknowledged but skipped.
-    if (result && result.debounced) {
-      const waitSec = Math.max(1, Math.ceil(result.waitMs / 1000));
-      btn.title = `Just refreshed — try again in ${waitSec}s`;
-      btn.classList.add('debounced');
-      setTimeout(() => {
-        btn.classList.remove('debounced');
-        btn.title = 'Refresh';
-      }, 1200);
+    try {
+      const result = await window.api.refresh();
+      // The poller debounces manual refresh to 10s. Without surfacing this,
+      // the spinner runs for a moment and the user wonders why the timestamp
+      // didn't change. A quick title-hint + brief shake gives them the signal
+      // that the click was acknowledged but skipped.
+      if (result && result.debounced) {
+        const waitSec = Math.max(1, Math.ceil(result.waitMs / 1000));
+        btn.title = `Just refreshed — try again in ${waitSec}s`;
+        btn.classList.add('debounced');
+        setTimeout(() => {
+          btn.classList.remove('debounced');
+          btn.title = 'Refresh';
+        }, 1200);
+      }
+    } catch (e) {
+      // Without this catch, an IPC rejection (rare but possible if main is
+      // restarting) would leave the spinner running forever — a silently
+      // broken UI is worse than a logged error.
+      console.error('Manual refresh failed:', e);
+    } finally {
+      setTimeout(() => btn.classList.remove('spinning'), 500);
     }
-    setTimeout(() => btn.classList.remove('spinning'), 500);
   });
   $('settingsBtn').addEventListener('click', () => window.api.openSettings());
   // Header X hides the widget to the tray instead of quitting — the tooltip

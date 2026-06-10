@@ -2,6 +2,7 @@ const { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage, screen, powerMonit
 const { spawn } = require('child_process');
 const path = require('path');
 const config = require('./config');
+const { deepMerge } = require('./config');
 const { Poller } = require('./poller');
 const { History } = require('./history');
 const icon = require('./icon');
@@ -77,6 +78,7 @@ function createWidget() {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
     },
   });
 
@@ -131,6 +133,7 @@ function createSettings() {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
     },
   });
   settingsWindow.setMenuBarVisibility(false);
@@ -333,8 +336,13 @@ function runResetHook(reset) {
   const command = cfg.onReset?.[reset.id];
   if (!command || !command.trim()) return;
   try {
+    // Pass a minimal environment to the hook command — just the PATH (so common
+    // utilities resolve) and the CLAUDE_RESET_* vars we promise in the docs.
+    // Inheriting the full Electron process.env would otherwise leak any
+    // ANTHROPIC_API_KEY / GH_TOKEN / etc. the user happens to have set.
     const env = {
-      ...process.env,
+      PATH: process.env.PATH || process.env.Path || '',
+      SYSTEMROOT: process.env.SYSTEMROOT || '',
       CLAUDE_RESET_ID: reset.id,
       CLAUDE_RESET_LABEL: reset.label,
       CLAUDE_RESET_AT: reset.currReset || '',
@@ -517,17 +525,11 @@ function applyConfig() {
   }
 }
 
-function deepMerge(base, patch) {
-  if (patch == null || typeof patch !== 'object') return patch ?? base;
-  if (Array.isArray(patch)) return patch;
-  const out = Array.isArray(base) ? [...base] : { ...(base || {}) };
-  for (const k of Object.keys(patch)) {
-    const bv = base ? base[k] : undefined;
-    const pv = patch[k];
-    out[k] = (pv && typeof pv === 'object' && !Array.isArray(pv)) ? deepMerge(bv, pv) : pv;
-  }
-  return out;
-}
+// deepMerge moved to config.js — there used to be a second implementation
+// here with slightly different semantics (no structuredClone of base, treated
+// arrays specially). Two copies meant the same `config:update` patch could
+// behave differently depending on which path it went through. The canonical
+// version is now imported from config.js (unit-tested in tests/config.test.js).
 
 app.on('window-all-closed', (e) => {
   if (process.platform !== 'darwin') e.preventDefault?.();

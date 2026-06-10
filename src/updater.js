@@ -59,11 +59,16 @@ async function checkForUpdate(currentVersion) {
   if (!latest) return { available: false, reason: 'bad-remote-tag', remoteTag: release.tag_name };
 
   const available = compareVersions(latest, current) > 0;
+  // Build the release URL from the tag we just validated instead of trusting
+  // `release.html_url`. If the GitHub response were ever tampered with (MITM,
+  // mirror compromise), an attacker could phish the user via a spoofed link.
+  // The hardcoded host means `shell:openExternal` only ever opens our repo.
+  const tag = release.tag_name.replace(/^v/i, '');
   return {
     available,
     currentVersion,
-    latestVersion: release.tag_name.replace(/^v/i, ''),
-    releaseUrl: release.html_url || `https://github.com/projectvelox/claude-usage-widget/releases/tag/${release.tag_name}`,
+    latestVersion: tag,
+    releaseUrl: `https://github.com/projectvelox/claude-usage-widget/releases/tag/v${tag}`,
     publishedAt: release.published_at || null,
     checkedAt: Date.now(),
   };
