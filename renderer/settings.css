@@ -6,6 +6,9 @@
   --border: rgba(255, 255, 255, 0.08);
   --accent: #38AEEB;
   --danger: #E5484D;
+  --input-bg: #15151a;
+  --button-bg: #2d2d33;
+  --button-hover: #36363c;
 }
 
 /* Honor the OS theme so the settings panel doesn't open as a stark dark
@@ -19,6 +22,9 @@
     --fg: #1a1a1d;
     --fg-dim: #5f6368;
     --border: rgba(0, 0, 0, 0.08);
+    --input-bg: #f0f0f3;
+    --button-bg: #e9e9ee;
+    --button-hover: #dfdfe6;
   }
 }
 
@@ -94,7 +100,7 @@ h2 {
 }
 
 .row.stretch input[type="text"] {
-  background: #15151a;
+  background: var(--input-bg);
   color: var(--fg);
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -112,7 +118,7 @@ h2 {
 }
 
 select, input[type="number"] {
-  background: #15151a;
+  background: var(--input-bg);
   color: var(--fg);
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -142,7 +148,7 @@ input[type="checkbox"] {
   width: 36px;
   height: 20px;
   appearance: none;
-  background: #15151a;
+  background: var(--input-bg);
   border: 1px solid var(--border);
   border-radius: 999px;
   position: relative;
@@ -164,7 +170,7 @@ input[type="checkbox"]::after {
 input[type="checkbox"]:checked::after { transform: translateX(16px); }
 
 button {
-  background: #2d2d33;
+  background: var(--button-bg);
   color: var(--fg);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -172,7 +178,7 @@ button {
   font-size: 12px;
   cursor: pointer;
 }
-button:hover { background: #36363c; }
+button:hover { background: var(--button-hover); }
 button.danger { color: var(--danger); border-color: rgba(229, 72, 77, 0.3); }
 button.danger:hover { background: rgba(229, 72, 77, 0.12); }
 
@@ -180,7 +186,7 @@ button.danger:hover { background: rgba(229, 72, 77, 0.12); }
 
 .muted { color: var(--fg-dim); font-size: 12px; margin: 0 0 8px; }
 code {
-  background: #15151a;
+  background: var(--input-bg);
   border: 1px solid var(--border);
   border-radius: 4px;
   padding: 1px 5px;
