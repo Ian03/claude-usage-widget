@@ -1,0 +1,50 @@
+name: Promote dev to main
+
+# Runs on every push to dev. Runs the full test suite and, if green, ensures
+# there is an open PR from dev to main. The user merges the PR when ready to
+# cut a release. The PR title stays stable so re-runs update the same PR
+# instead of stacking new ones.
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  test-and-promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Ensure PR from dev to main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          existing=$(gh pr list --base main --head dev --state open --json number --jq '.[0].number // ""')
+          if [ -n "$existing" ]; then
+            echo "PR #$existing already open — leaving it for the user to merge."
+          else
+            gh pr create --base main --head dev \
+              --title "Promote dev → main" \
+              --body "Auto-opened after dev tests passed on $(date -u +%FT%TZ).
+
+          Merge when you're ready. The release workflow does **not** trigger on this merge — it only runs when you tag a release on \`main\` (e.g. \`npm version patch\`)."
+          fi
