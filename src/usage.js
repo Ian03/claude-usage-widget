@@ -77,8 +77,12 @@ async function fetchUsage({ retryOnAuth = true } = {}) {
     throw err;
   }
   if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    const err = new Error(`Usage fetch failed: ${res.status} ${body.slice(0, 200)}`);
+    // Drain the body to free the socket, but do NOT include it in the error
+    // message — Anthropic occasionally echoes the bearer token in error
+    // bodies ("invalid token: sk-…") and we broadcast errors to the renderer
+    // / log them locally. Status + statusText is enough to drive backoff.
+    await res.text().catch(() => '');
+    const err = new Error(`Usage fetch failed: HTTP ${res.status} ${res.statusText || ''}`.trim());
     err.code = 'HTTP_ERROR';
     err.status = res.status;
     throw err;

@@ -8,6 +8,28 @@
   --danger: #E5484D;
 }
 
+/* Honor the OS theme so the settings panel doesn't open as a stark dark
+   surface on a light desktop. The widget itself has its own theme toggle
+   (system/dark/light); the settings window follows the OS, which is the
+   most predictable behavior for a transient configuration UI. */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f7f7f9;
+    --panel: #ffffff;
+    --fg: #1a1a1d;
+    --fg-dim: #5f6368;
+    --border: rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* Universal focus ring for keyboard nav inside the settings panel. */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 * { box-sizing: border-box; }
 html, body {
   margin: 0;
