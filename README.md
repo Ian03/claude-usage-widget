@@ -10,6 +10,12 @@
 
 > First-launch note: the EXE is unsigned (we're applying for free OSS code signing — paying $300/yr for a cert is on hold until v1.0). SmartScreen will say "Windows protected your PC." Click **More info → Run anyway**. One-time click per machine.
 
+> **If your antivirus calls it `Trojan:Win32/Wacatac` or similar:** this is a known false positive that hits every unsigned Electron app (Discord, VS Code, Notion all had it before they signed their builds). The `!ml` suffix on the detection name means it came from Windows Defender's machine-learning heuristic, not a real signature match. To verify the file you have is identical to what I published:
+> ```powershell
+> Get-FileHash -Algorithm SHA256 .\ClaudeUsageWidget-*.exe
+> ```
+> and compare against `SHA256SUMS.txt` on the [release page](../../releases/latest). If the hash matches you have the canonical build. You can also upload the EXE to [virustotal.com](https://www.virustotal.com/) — a Wacatac flag from Defender alongside a clean result from 70+ other engines confirms the false positive. To work around it: Defender → **Virus & threat protection** → **Allowed threats** / **Protection history** → restore + allow. Permanent fix (code signing) is on the roadmap.
+
 ## What it shows
 
 The same bars as **Settings → Usage** on claude.ai, plus things they don't:
