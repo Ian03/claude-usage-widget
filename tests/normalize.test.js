@@ -19,9 +19,13 @@ const FIXTURE_PAYLOAD = {
   cinder_cove: null,
   extra_usage: {
     is_enabled: true,
-    monthly_limit: 5000,
-    used_credits: 225.0,
-    utilization: 4.5,
+    // Anthropic returns these in *cents* — 10000 means "$100 cap", 1386 means
+    // "$13.86 spent" — and normalize() converts to whole-currency units. The
+    // fixture deliberately keeps the cents shape so the test catches anyone
+    // who regresses the conversion.
+    monthly_limit: 10000,
+    used_credits: 1386,
+    utilization: 13.86,
     currency: 'USD',
     disabled_reason: null,
   },
@@ -79,11 +83,14 @@ test('normalize is resilient to a wrapper key (limits/quotas)', () => {
   assert.equal(r.limits[0].utilization, 50);
 });
 
-test('normalize passes through the credit-pool fields on extra_usage', () => {
+test('normalize converts credit-pool cents to whole-currency units', () => {
+  // Regression: pre-v0.2.17 the widget displayed "$1,386 of $10,000" for the
+  // canonical "$13.86 of $100" account — a 100× overstatement that hid the
+  // real spend. Pin the conversion so this can't slip past tests again.
   const r = normalize(FIXTURE_PAYLOAD, {});
   const extra = r.limits.find((l) => l.id === 'extra_usage');
-  assert.equal(extra.usedCredits, 225.0);
-  assert.equal(extra.monthlyLimit, 5000);
+  assert.equal(extra.usedCredits, 13.86);
+  assert.equal(extra.monthlyLimit, 100);
   assert.equal(extra.currency, 'USD');
 });
 
@@ -91,7 +98,7 @@ test('normalize skips limits where is_enabled is explicitly false', () => {
   // Mirrors a real account that has extra_usage configured but turned off —
   // the bar would otherwise render at 0% forever, which is noise.
   const r = normalize({
-    extra_usage: { is_enabled: false, utilization: 0, monthly_limit: 5000, used_credits: 0 },
+    extra_usage: { is_enabled: false, utilization: 0, monthly_limit: 10000, used_credits: 0 },
     five_hour: { utilization: 12, resets_at: null },
   }, {});
   assert.deepEqual(r.limits.map((l) => l.id), ['five_hour']);

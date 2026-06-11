@@ -140,13 +140,15 @@ function normalize(raw, meta = {}) {
       windowMs: WINDOW_MS[key] || null,
     };
     // Credit-pool limits (extra_usage) expose dollar amounts alongside the
-    // percentage. Pass them through so the renderer can show "$225 of $5,000"
-    // — much more actionable than "4.5%" for someone deciding whether to
-    // spend more credits today.
-    const usedCredits = pickNumber(value.used_credits, value.usedCredits);
-    const monthlyLimit = pickNumber(value.monthly_limit, value.monthlyLimit);
-    if (usedCredits != null) limit.usedCredits = usedCredits;
-    if (monthlyLimit != null) limit.monthlyLimit = monthlyLimit;
+    // percentage. The API returns these in cents (e.g. 1386 for "$13.86",
+    // 10000 for a "$100" cap) — convert to whole-currency units so the
+    // renderer can format them with Intl.NumberFormat directly. Without this
+    // the widget displayed 100× the real value ($1,386 of $10,000 instead of
+    // $13.86 of $100), which is why v0.2.17 ships this fix.
+    const usedCentsRaw = pickNumber(value.used_credits, value.usedCredits);
+    const limitCentsRaw = pickNumber(value.monthly_limit, value.monthlyLimit);
+    if (usedCentsRaw != null) limit.usedCredits = usedCentsRaw / 100;
+    if (limitCentsRaw != null) limit.monthlyLimit = limitCentsRaw / 100;
     if (typeof value.currency === 'string' && value.currency) limit.currency = value.currency;
     limits.push(limit);
   }
