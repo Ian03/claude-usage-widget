@@ -53,9 +53,12 @@ test('normalize clamps utilization to 0..100 and preserves windowMs for known id
   assert.equal(sd.windowMs, 7 * 24 * 60 * 60 * 1000);
 });
 
-test('normalize accepts 0..1 utilization and rescales to percent', () => {
-  const result = normalize({ five_hour: { utilization: 0.42, resets_at: null } }, {});
-  assert.equal(result.limits[0].utilization, 42);
+test('normalize treats small utilization as a literal percent, not a 0..1 fraction', () => {
+  const result = normalize({ seven_day_sonnet: { utilization: 1, resets_at: null } }, {});
+  assert.equal(result.limits[0].utilization, 1);
+
+  const frac = normalize({ five_hour: { utilization: 0.42, resets_at: null } }, {});
+  assert.equal(frac.limits[0].utilization, 0.42);
 });
 
 test('normalize returns empty limits for empty payload, without crashing', () => {

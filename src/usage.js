@@ -131,7 +131,7 @@ function normalize(raw, meta = {}) {
     limits.push({
       id: key,
       label: prettyLabel(key),
-      utilization: clamp(utilization > 1 ? utilization : utilization * 100, 0, 100),
+      utilization: clamp(utilization, 0, 100),
       resetsAt: value.resets_at || value.resetsAt || value.reset_at || null,
       windowMs: WINDOW_MS[key] || null,
     });
