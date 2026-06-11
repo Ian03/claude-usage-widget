@@ -108,12 +108,14 @@ function fmtMoney(limit) {
   // the renderer mid-frame.
   const code = (typeof limit.currency === 'string' && limit.currency) ? limit.currency : 'USD';
   try {
-    const nf = new Intl.NumberFormat(undefined, { style: 'currency', currency: code, maximumFractionDigits: 0 });
+    // Show two decimals — Anthropic's own UI does, and rounding a $13.86 spend
+    // to "$14" would conflict with the percentage shown next to the bar.
+    const nf = new Intl.NumberFormat(undefined, { style: 'currency', currency: code, minimumFractionDigits: 2, maximumFractionDigits: 2 });
     return `${nf.format(limit.usedCredits)} of ${nf.format(limit.monthlyLimit)} used`;
   } catch {
     // Unknown currency code: fall back to a plain-number representation so we
     // still surface the numbers instead of dropping them.
-    return `${limit.usedCredits} of ${limit.monthlyLimit} ${code} used`;
+    return `${limit.usedCredits.toFixed(2)} of ${limit.monthlyLimit.toFixed(2)} ${code} used`;
   }
 }
 
