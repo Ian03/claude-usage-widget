@@ -128,13 +128,27 @@ function normalize(raw, meta = {}) {
     seen.add(key);
     const utilization = pickNumber(value.utilization, value.percent, value.percentage, value.usage);
     if (utilization == null) continue;
-    limits.push({
+    // Skip limits the API explicitly marks disabled (e.g. extra_usage when the
+    // user hasn't opted in). Showing "0%" for something that can never grow
+    // would just be confusing noise.
+    if (value.is_enabled === false) continue;
+    const limit = {
       id: key,
       label: prettyLabel(key),
-      utilization: clamp(utilization > 1 ? utilization : utilization * 100, 0, 100),
+      utilization: clamp(utilization, 0, 100),
       resetsAt: value.resets_at || value.resetsAt || value.reset_at || null,
       windowMs: WINDOW_MS[key] || null,
-    });
+    };
+    // Credit-pool limits (extra_usage) expose dollar amounts alongside the
+    // percentage. Pass them through so the renderer can show "$225 of $5,000"
+    // — much more actionable than "4.5%" for someone deciding whether to
+    // spend more credits today.
+    const usedCredits = pickNumber(value.used_credits, value.usedCredits);
+    const monthlyLimit = pickNumber(value.monthly_limit, value.monthlyLimit);
+    if (usedCredits != null) limit.usedCredits = usedCredits;
+    if (monthlyLimit != null) limit.monthlyLimit = monthlyLimit;
+    if (typeof value.currency === 'string' && value.currency) limit.currency = value.currency;
+    limits.push(limit);
   }
 
   return {
