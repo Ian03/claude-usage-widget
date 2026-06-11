@@ -97,6 +97,26 @@ function paceFraction(limit) {
   return Math.max(0, Math.min(1, elapsed / limit.windowMs));
 }
 
+// Renders the dollar facts attached to a credit-pool limit (the API exposes
+// `used_credits`, `monthly_limit`, `currency` for the extra_usage entry).
+// Returns empty string if the limit doesn't carry credit data, so the caller
+// can decide whether the meta row even needs to render.
+function fmtMoney(limit) {
+  if (limit.usedCredits == null || limit.monthlyLimit == null) return '';
+  // Default to USD if the API didn't tag a currency — most accounts are USD
+  // anyway and Intl.NumberFormat throws on an unknown code, which would crash
+  // the renderer mid-frame.
+  const code = (typeof limit.currency === 'string' && limit.currency) ? limit.currency : 'USD';
+  try {
+    const nf = new Intl.NumberFormat(undefined, { style: 'currency', currency: code, maximumFractionDigits: 0 });
+    return `${nf.format(limit.usedCredits)} of ${nf.format(limit.monthlyLimit)} used`;
+  } catch {
+    // Unknown currency code: fall back to a plain-number representation so we
+    // still surface the numbers instead of dropping them.
+    return `${limit.usedCredits} of ${limit.monthlyLimit} ${code} used`;
+  }
+}
+
 function fmtCountdown(resetsAt) {
   if (!resetsAt) return '';
   const ms = new Date(resetsAt).getTime() - Date.now();
@@ -170,6 +190,13 @@ function render(payload) {
 
     const row = document.createElement('div');
     row.className = 'limit';
+    // limit-meta is now a single row that combines whichever facts we have for
+    // this limit: dollar usage on the left (credit pools only), reset countdown
+    // on the right (timed limits). Either or both can be present; if neither
+    // is there we omit the row entirely.
+    const moneyText = fmtMoney(limit);
+    const countdownText = (cfg.showResetCountdown && limit.resetsAt) ? fmtCountdown(limit.resetsAt) : '';
+    const showMeta = moneyText || countdownText;
     row.innerHTML = `
       <div class="limit-head">
         <span class="limit-label">${escapeHtml(limit.label)}</span>
@@ -179,7 +206,7 @@ function render(payload) {
         <div class="bar-fill ${sev === 'ok' ? '' : sev}" style="width:${pct}%"></div>
         ${cfg.showPaceMarker ? renderPace(limit, pct) : ''}
       </div>
-      ${cfg.showResetCountdown && limit.resetsAt ? `<div class="limit-meta"><span>${escapeHtml(fmtCountdown(limit.resetsAt))}</span></div>` : ''}
+      ${showMeta ? `<div class="limit-meta"><span>${escapeHtml(moneyText)}</span><span>${escapeHtml(countdownText)}</span></div>` : ''}
     `;
     limitsEl.appendChild(row);
   }
