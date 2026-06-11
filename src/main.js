@@ -28,6 +28,11 @@ function isOnVisibleDisplay(rect) {
   return isOnAnyDisplay(rect, screen.getAllDisplays());
 }
 
+// Transparent padding the window carries around the widget so its drop shadow
+// renders in full (and rounded) instead of being clipped square at the window
+// edge. Must match the .widget margin in widget.css.
+const SHADOW_GUTTER = 24;
+
 function defaultCorner(width) {
   const { workArea } = screen.getPrimaryDisplay();
   return { x: workArea.x + workArea.width - width - 24, y: workArea.y + 24 };
@@ -49,7 +54,7 @@ function rescueWindowIfOrphaned() {
 
 function createWidget() {
   const isMinimal = cfg.layout === 'minimal';
-  const width = isMinimal ? 156 : cfg.size.width;
+  const width = isMinimal ? 156 : cfg.size.width + SHADOW_GUTTER * 2;
   const height = isMinimal ? 44 : 320;
   const fallback = defaultCorner(width);
   const savedX = cfg.position.x;
@@ -521,7 +526,7 @@ function applyConfig() {
     // ResizeObserver will fit the window to actual content on the next paint.
     const [, curH] = widgetWindow.getSize();
     const height = curH < 120 ? 320 : curH;
-    widgetWindow.setBounds({ x, y, width: cfg.size.width, height });
+    widgetWindow.setBounds({ x, y, width: cfg.size.width + SHADOW_GUTTER * 2, height });
   }
 }
 

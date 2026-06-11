@@ -41,7 +41,8 @@ function requestFit() {
   requestAnimationFrame(() => {
     pendingResize = false;
     if (!currentCfg || currentCfg.layout === 'minimal') return;
-    const h = root.offsetHeight + 6; // 3px margin top + 3px margin bottom
+    const gutter = parseFloat(getComputedStyle(root).marginTop) || 0;
+    const h = root.offsetHeight + gutter * 2;
     if (h <= 0 || h === lastSentHeight) return;
     lastSentHeight = h;
     window.api.resize?.(h);
