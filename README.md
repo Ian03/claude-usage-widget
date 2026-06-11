@@ -14,7 +14,12 @@
 > ```powershell
 > Get-FileHash -Algorithm SHA256 .\ClaudeUsageWidget-*.exe
 > ```
-> and compare against `SHA256SUMS.txt` on the [release page](../../releases/latest). If the hash matches you have the canonical build. You can also upload the EXE to [virustotal.com](https://www.virustotal.com/) — a Wacatac flag from Defender alongside a clean result from 70+ other engines confirms the false positive. To work around it: Defender → **Virus & threat protection** → **Allowed threats** / **Protection history** → restore + allow. Permanent fix (code signing) is on the roadmap.
+> and compare against `SHA256SUMS.txt` on the [release page](../../releases/latest). If the hash matches you have the canonical build. The v0.2.17 release binary has already been independently scanned:
+>
+> - **Portable EXE** (`ClaudeUsageWidget-0.2.17-portable.exe`): [0 / 64 engines detected as malicious](https://www.virustotal.com/gui/file/27fa0046cef6ba50ee670116a067069aaba1513480de4f6fc1b50201b0c3d36f)
+> - **Installer EXE** (`ClaudeUsageWidget-0.2.17-setup.exe`): [0 / 68 engines detected as malicious](https://www.virustotal.com/gui/file/de62ec183f7451db66c0f084591e136984b39d19dfabb278113cfba46b1836c3)
+>
+> Every signature-based engine on VirusTotal — including Microsoft's own — comes back clean. The Wacatac flag on real Windows machines comes entirely from Defender's cloud-delivered ML model (the `!ml` suffix), which doesn't run on VirusTotal's static scans. To work around it on your machine: Defender → **Virus & threat protection** → **Protection history** → restore + allow. Permanent fix (code signing via SignPath Foundation) is in flight — once it lands, this section goes away.
 
 ## What it shows
 
