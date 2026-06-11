@@ -8,7 +8,7 @@
 
 ➡ **[Download the latest portable .exe](../../releases/latest)** — ~88 MB, single file, no install. Tested on Windows 11.
 
-> First-launch note: the EXE is unsigned (we're applying for free OSS code signing — paying $300/yr for a cert is on hold until v1.0). SmartScreen will say "Windows protected your PC." Click **More info → Run anyway**. One-time click per machine.
+> First-launch note: the EXE is unsigned (we have applied for free open-source code signing through the [SignPath Foundation](https://signpath.org/) — once accepted, future releases will be signed by SignPath Foundation's certificate at no cost). SmartScreen will say "Windows protected your PC." Click **More info → Run anyway**. One-time click per machine.
 
 > **If your antivirus calls it `Trojan:Win32/Wacatac` or similar:** this is a known false positive that hits every unsigned Electron app (Discord, VS Code, Notion all had it before they signed their builds). The `!ml` suffix on the detection name means it came from Windows Defender's machine-learning heuristic, not a real signature match. To verify the file you have is identical to what I published:
 > ```powershell
