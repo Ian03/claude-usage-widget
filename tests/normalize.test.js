@@ -83,6 +83,67 @@ test('normalize is resilient to a wrapper key (limits/quotas)', () => {
   assert.equal(r.limits[0].utilization, 50);
 });
 
+test('normalize collapses the new `limits` array against the old top-level keys', () => {
+  // Regression: in mid-2026 Anthropic started returning both the legacy
+  // top-level keys (five_hour, seven_day, seven_day_sonnet, extra_usage) and
+  // a new normalized `limits` array + `spend` object containing the same
+  // data. The widget rendered every row twice — once as "Current session",
+  // again as "0", and so on for "Spend" vs "Extra usage". Dedup by
+  // (resets_at, rounded utilization) keeps the richer original row and drops
+  // the slimmer dup.
+  const payload = {
+    five_hour: { utilization: 19, resets_at: '2026-06-17T06:09:59.814020+00:00' },
+    seven_day: { utilization: 51, resets_at: '2026-06-20T15:59:59.814040+00:00' },
+    seven_day_sonnet: { utilization: 6, resets_at: '2026-06-20T15:59:59.814047+00:00' },
+    extra_usage: {
+      is_enabled: true,
+      monthly_limit: 10000,
+      used_credits: 2343,
+      utilization: 23.43,
+      currency: 'USD',
+    },
+    limits: [
+      { kind: 'session', percent: 19, resets_at: '2026-06-17T06:09:59.814020+00:00' },
+      { kind: 'weekly_all', percent: 51, resets_at: '2026-06-20T15:59:59.814040+00:00' },
+      { kind: 'weekly_scoped', percent: 6, resets_at: '2026-06-20T15:59:59.814047+00:00' },
+    ],
+    spend: { percent: 23, enabled: true },
+  };
+  const r = normalize(payload, {});
+  const ids = r.limits.map((l) => l.id).sort();
+  assert.deepEqual(ids, ['extra_usage', 'five_hour', 'seven_day', 'seven_day_sonnet']);
+  // The legacy row should win and keep its currency fields (the new `spend`
+  // shape lacks used_credits / monthly_limit in the form we currently consume).
+  const extra = r.limits.find((l) => l.id === 'extra_usage');
+  assert.equal(extra.usedCredits, 23.43);
+  assert.equal(extra.monthlyLimit, 100);
+});
+
+test('normalize falls back to the new `limits` array when legacy keys are absent', () => {
+  // Forward-compat: if Anthropic eventually drops the old top-level keys and
+  // only returns the array, rows should still be labeled by `kind` rather
+  // than the numeric Object.entries index ("0", "1", "2").
+  const payload = {
+    limits: [
+      { kind: 'session', percent: 42, resets_at: '2026-06-17T06:09:59.000000+00:00' },
+      { kind: 'weekly_all', percent: 88, resets_at: '2026-06-20T15:59:59.000000+00:00' },
+    ],
+  };
+  const r = normalize(payload, {});
+  const ids = r.limits.map((l) => l.id).sort();
+  assert.deepEqual(ids, ['session', 'weekly_all']);
+});
+
+test('normalize skips a `spend` entry that is explicitly disabled', () => {
+  // The new `spend` shape uses `enabled: false` (not `is_enabled`) when the
+  // account hasn't opted into a credit pool. Treat it the same way.
+  const r = normalize({
+    five_hour: { utilization: 12, resets_at: null },
+    spend: { percent: 0, enabled: false },
+  }, {});
+  assert.deepEqual(r.limits.map((l) => l.id), ['five_hour']);
+});
+
 test('normalize converts credit-pool cents to whole-currency units', () => {
   // Regression: pre-v0.2.17 the widget displayed "$1,386 of $10,000" for the
   // canonical "$13.86 of $100" account — a 100× overstatement that hid the
