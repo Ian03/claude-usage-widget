@@ -106,17 +106,38 @@ async function fetchUsage({ retryOnAuth = true } = {}) {
 function normalize(raw, meta = {}) {
   const limits = [];
   const seen = new Set();
+  const seenFingerprint = new Set();
   const candidates = [];
 
   if (raw && typeof raw === 'object') {
     for (const [key, value] of Object.entries(raw)) {
+      // Skip arrays in the top-level scan — they're handled by the wrapper
+      // loop below so their items get unwrapped instead of treated as one row.
+      if (Array.isArray(value)) continue;
       if (value && typeof value === 'object' && ('utilization' in value || 'percent' in value || 'usage' in value)) {
         candidates.push([key, value]);
       }
     }
     for (const wrapKey of ['limits', 'quotas', 'rate_limits']) {
-      if (raw[wrapKey] && typeof raw[wrapKey] === 'object') {
-        for (const [key, value] of Object.entries(raw[wrapKey])) {
+      const wrap = raw[wrapKey];
+      if (!wrap || typeof wrap !== 'object') continue;
+      if (Array.isArray(wrap)) {
+        // New API shape (mid-2026): `limits` is an array of normalized records
+        // with kind/percent/resets_at. Object.entries would yield "0","1","2"
+        // as keys, producing nameless rows. Use each item's `kind` (or id/name)
+        // so labels stay meaningful if Anthropic ever removes the old top-level
+        // keys. Duplicates against those top-level keys are dropped by the
+        // content fingerprint below.
+        for (const item of wrap) {
+          if (!item || typeof item !== 'object') continue;
+          const key = (typeof item.kind === 'string' && item.kind)
+            || (typeof item.id === 'string' && item.id)
+            || (typeof item.name === 'string' && item.name);
+          if (!key) continue;
+          candidates.push([key, item]);
+        }
+      } else {
+        for (const [key, value] of Object.entries(wrap)) {
           if (value && typeof value === 'object') candidates.push([key, value]);
         }
       }
@@ -132,6 +153,17 @@ function normalize(raw, meta = {}) {
     // user hasn't opted in). Showing "0%" for something that can never grow
     // would just be confusing noise.
     if (value.is_enabled === false) continue;
+    if (value.enabled === false) continue;
+    // Content-based dedup: Anthropic now returns the same usage data under
+    // multiple shapes simultaneously (e.g. top-level `extra_usage` + new `spend`
+    // object, top-level `five_hour` + an entry in the new `limits` array).
+    // Fingerprint by (resets_at, rounded utilization) so the second occurrence
+    // is dropped. Candidates are pushed top-level-first, so the richer original
+    // row wins and the slimmer dup is suppressed.
+    const resetsAtFp = value.resets_at || value.resetsAt || value.reset_at || '';
+    const fp = `${resetsAtFp}|${Math.round(utilization)}`;
+    if (seenFingerprint.has(fp)) continue;
+    seenFingerprint.add(fp);
     const limit = {
       id: key,
       label: prettyLabel(key),
