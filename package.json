@@ -56,6 +56,7 @@
     ],
     "win": {
       "icon": "assets/icon.png",
+      "sign": null,
       "target": [
         {
           "target": "portable",
@@ -112,5 +113,8 @@
     "appImage": {
       "artifactName": "ClaudeUsageWidget-${version}-${arch}.AppImage"
     }
+  },
+  "allowScripts": {
+    "electron@39.8.10": true
   }
 }

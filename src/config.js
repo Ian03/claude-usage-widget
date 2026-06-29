@@ -47,6 +47,9 @@ const DEFAULTS = {
   notifyAtWarn: false,
   notifyAtCritical: true,
 
+  // Language
+  language: 'en',
+
   // Behavior
   openAtLogin: false,
   openMinimized: false,

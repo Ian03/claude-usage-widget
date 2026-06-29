@@ -1,8 +1,12 @@
+const t = (key, vars) => window.i18n.t(key, vars);
 const $ = (id) => document.getElementById(id);
+
 let cfg = null;
 let saveTimer = null;
+let lastUpdateInfo = null;
 
 const BINDINGS = [
+  { id: 'language', path: ['language'], type: 'value' },
   { id: 'layout', path: ['layout'], type: 'value' },
   { id: 'alwaysOnTop', path: ['alwaysOnTop'], type: 'checked' },
   { id: 'clickThrough', path: ['clickThrough'], type: 'checked' },
@@ -77,6 +81,16 @@ function readForm() {
   return patch;
 }
 
+function renderUpdateStatus(info) {
+  const status = $('updateStatus');
+  if (!status) return;
+  lastUpdateInfo = info;
+  if (!info) { status.textContent = t('settings.updates.never'); return; }
+  if (info.available) status.textContent = t('settings.updates.available', { version: info.latestVersion });
+  else if (info.latestVersion) status.textContent = t('settings.updates.latest', { version: info.latestVersion });
+  else status.textContent = '';
+}
+
 function scheduleSave() {
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
@@ -87,7 +101,10 @@ function scheduleSave() {
 
 async function init() {
   cfg = await window.api.getConfig();
+  window.i18n.initI18n(cfg.language || 'en');
+  window.i18n.applyI18n();
   load();
+
   for (const b of BINDINGS) {
     const el = $(b.id);
     if (!el) continue;
@@ -96,22 +113,25 @@ async function init() {
   }
   $('openCreds').addEventListener('click', () => window.api.openCreds());
   $('quit').addEventListener('click', () => window.api.quit());
-  window.api.onConfig((newCfg) => { cfg = newCfg; load(); });
+
+  window.api.onConfig((newCfg) => {
+    const langChanged = newCfg.language !== cfg?.language;
+    cfg = newCfg;
+    if (langChanged) {
+      window.i18n.initI18n(newCfg.language || 'en');
+      window.i18n.applyI18n();
+      renderUpdateStatus(lastUpdateInfo);
+    }
+    load();
+  });
 
   const checkBtn = $('checkUpdateNow');
-  const status = $('updateStatus');
-  if (checkBtn && status) {
-    const renderUpdateStatus = (info) => {
-      if (!info) { status.textContent = 'Never checked yet.'; return; }
-      if (info.available) status.textContent = `v${info.latestVersion} is available — see the header link to download.`;
-      else if (info.latestVersion) status.textContent = `You're on the latest version (v${info.latestVersion}).`;
-      else status.textContent = '';
-    };
+  if (checkBtn) {
     window.api.getUpdate?.().then(renderUpdateStatus);
     window.api.onUpdate?.(renderUpdateStatus);
     checkBtn.addEventListener('click', async () => {
       checkBtn.disabled = true;
-      status.textContent = 'Checking…';
+      $('updateStatus').textContent = t('settings.updates.checking');
       try { await window.api.checkUpdate?.(); } finally { checkBtn.disabled = false; }
     });
   }

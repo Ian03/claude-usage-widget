@@ -8,6 +8,7 @@ const { History } = require('./history');
 const icon = require('./icon');
 const { checkForUpdate, CHECK_INTERVAL_MS } = require('./updater');
 const { isOnAnyDisplay } = require('./geom');
+const i18n = require('./i18n');
 
 let widgetWindow = null;
 let settingsWindow = null;
@@ -192,7 +193,7 @@ function makeTrayIconImage() {
 
 function createTray() {
   tray = new Tray(makeTrayIconImage());
-  tray.setToolTip('Claude Usage Widget');
+  tray.setToolTip(i18n.t('tray.tooltip'));
   rebuildTrayMenu();
   tray.on('click', () => {
     if (!widgetWindow) createWidget();
@@ -208,7 +209,7 @@ function refreshTrayIcon() {
 function rebuildTrayMenu() {
   if (!tray) return;
   const styleSubmenu = ['bars', 'battery', 'gauge', 'minimal', 'dynamic'].map((s) => ({
-    label: s.charAt(0).toUpperCase() + s.slice(1),
+    label: i18n.t(`tray.style.${s}`),
     type: 'radio',
     checked: cfg.trayIconStyle === s,
     click: () => {
@@ -219,21 +220,21 @@ function rebuildTrayMenu() {
     },
   }));
   const menu = Menu.buildFromTemplate([
-    { label: 'Show widget', click: () => { if (!widgetWindow) createWidget(); else widgetWindow.show(); } },
-    { label: 'Hide widget', click: () => widgetWindow?.hide() },
+    { label: i18n.t('tray.show'), click: () => { if (!widgetWindow) createWidget(); else widgetWindow.show(); } },
+    { label: i18n.t('tray.hide'), click: () => widgetWindow?.hide() },
     { type: 'separator' },
-    { label: 'Refresh now', click: () => poller?.manualRefresh() },
-    { label: 'Settings…', click: createSettings },
+    { label: i18n.t('tray.refresh'), click: () => poller?.manualRefresh() },
+    { label: i18n.t('tray.settings'), click: createSettings },
     { type: 'separator' },
-    { label: 'Tray icon style', submenu: styleSubmenu },
+    { label: i18n.t('tray.iconStyle'), submenu: styleSubmenu },
     {
-      label: 'Always on top',
+      label: i18n.t('tray.alwaysOnTop'),
       type: 'checkbox',
       checked: cfg.alwaysOnTop,
       click: (item) => { cfg.alwaysOnTop = item.checked; widgetWindow?.setAlwaysOnTop(cfg.alwaysOnTop, 'screen-saver'); config.save(cfg); },
     },
     {
-      label: 'Click-through',
+      label: i18n.t('tray.clickThrough'),
       type: 'checkbox',
       checked: cfg.clickThrough,
       click: async (item) => {
@@ -248,7 +249,7 @@ function rebuildTrayMenu() {
       },
     },
     {
-      label: 'Start with Windows',
+      label: i18n.t('tray.startWithWindows'),
       type: 'checkbox',
       checked: cfg.openAtLogin,
       click: (item) => { cfg.openAtLogin = item.checked; syncLoginItem(); config.save(cfg); broadcast('config:changed', cfg); },
@@ -256,8 +257,8 @@ function rebuildTrayMenu() {
     { type: 'separator' },
     {
       label: lastUpdateInfo?.available
-        ? `Get v${lastUpdateInfo.latestVersion} (you have v${app.getVersion()})`
-        : 'Check for updates',
+        ? i18n.t('tray.getUpdate', { latest: lastUpdateInfo.latestVersion, current: app.getVersion() })
+        : i18n.t('tray.checkUpdate'),
       click: () => {
         if (lastUpdateInfo?.available && lastUpdateInfo.releaseUrl) {
           shell.openExternal(lastUpdateInfo.releaseUrl);
@@ -267,7 +268,7 @@ function rebuildTrayMenu() {
       },
     },
     {
-      label: 'Auto-check for updates',
+      label: i18n.t('tray.autoCheck'),
       type: 'checkbox',
       checked: cfg.checkForUpdates !== false,
       click: (item) => {
@@ -278,7 +279,7 @@ function rebuildTrayMenu() {
       },
     },
     { type: 'separator' },
-    { label: 'Quit', click: () => { app.isQuitting = true; app.quit(); } },
+    { label: i18n.t('tray.quit'), click: () => { app.isQuitting = true; app.quit(); } },
   ]);
   tray.setContextMenu(menu);
 }
@@ -303,11 +304,12 @@ function checkNotifications(usage) {
   for (const limit of usage.limits) {
     const pct = limit.utilization;
     const key = `${limit.id}:${limit.resetsAt || ''}`;
+    const label = i18n.t(`limit.${limit.id}`) || limit.label;
     if (cfg.notifyAtCritical && pct >= cfg.thresholds.critical && !notifiedFor.has(key + ':crit')) {
-      notify(`${limit.label} at ${Math.round(pct)}%`, 'Critical threshold reached.');
+      notify(i18n.t('notify.limit', { label, pct: Math.round(pct) }), i18n.t('notify.critical'));
       notifiedFor.add(key + ':crit');
     } else if (cfg.notifyAtWarn && pct >= cfg.thresholds.warn && pct < cfg.thresholds.critical && !notifiedFor.has(key + ':warn')) {
-      notify(`${limit.label} at ${Math.round(pct)}%`, 'Warning threshold reached.');
+      notify(i18n.t('notify.limit', { label, pct: Math.round(pct) }), i18n.t('notify.warn'));
       notifiedFor.add(key + ':warn');
     }
     if (pct < cfg.thresholds.warn) {
@@ -325,14 +327,12 @@ function notify(title, body) {
 async function confirmEnableClickThrough() {
   const { response } = await dialog.showMessageBox({
     type: 'warning',
-    buttons: ['Cancel', 'Enable click-through'],
+    buttons: [i18n.t('dialog.clickThrough.cancel'), i18n.t('dialog.clickThrough.confirm')],
     defaultId: 0,
     cancelId: 0,
-    title: 'Enable click-through?',
-    message: 'Click-through makes the widget invisible to mouse clicks.',
-    detail:
-      "While it's on, you won't be able to drag the widget, click its buttons, or close it — clicks pass straight through to whatever is underneath.\n\n" +
-      "To turn it back off, right-click the tray icon and uncheck Click-through.\n\nContinue?",
+    title: i18n.t('dialog.clickThrough.title'),
+    message: i18n.t('dialog.clickThrough.message'),
+    detail: i18n.t('dialog.clickThrough.detail'),
   });
   return response === 1;
 }
@@ -371,11 +371,11 @@ async function runUpdateCheck({ manual = false } = {}) {
     broadcast('update:available', info);
     rebuildTrayMenu();
     if (manual && info && !info.available) {
-      notify('You\'re up to date', `Running v${app.getVersion()} — the latest release.`);
+      notify(i18n.t('notify.upToDate'), i18n.t('notify.upToDate.body', { version: app.getVersion() }));
     }
   } catch (e) {
     // Network blips and 403 rate-limits are expected; surface nothing.
-    if (manual) notify('Update check failed', e.message || 'Could not reach GitHub.');
+    if (manual) notify(i18n.t('notify.updateFailed'), e.message || i18n.t('notify.updateFailed.body'));
   }
 }
 
@@ -408,6 +408,7 @@ function updateActivityState() {
 
 app.whenReady().then(() => {
   cfg = config.load();
+  i18n.setLang(cfg.language || 'en');
   nativeTheme.themeSource = cfg.theme;
   history = new History(config.historyPath());
 
@@ -509,7 +510,9 @@ const MINIMAL_SIZE = { width: 156, height: 44 };
 
 function applyConfig() {
   syncLoginItem();
+  i18n.setLang(cfg.language || 'en');
   nativeTheme.themeSource = cfg.theme;
+  if (tray) tray.setToolTip(i18n.t('tray.tooltip'));
   rebuildTrayMenu();
   scheduleUpdateChecks();
   if (!widgetWindow) return;

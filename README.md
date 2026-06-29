@@ -1,10 +1,36 @@
 # Claude Usage Widget
 
+> **Este repositório é um fork de [projectvelox/claude-usage-widget](https://github.com/projectvelox/claude-usage-widget).**
+> O objetivo deste fork é adicionar suporte a múltiplos idiomas com foco em **Português (Brasil)**.
+> A interface, menus da bandeja do sistema, notificações e todas as strings visíveis ao usuário podem ser exibidas em português, sem necessidade de nenhuma configuração adicional — basta acessar **Configurações → Idioma → Português (Brasil)**.
+
+---
+
 <p align="center">
   <img src="assets/demo.gif" width="340" alt="Demo: the widget responding to a usage tick. The Current session bar slides up from 42% to 91%, the dot turns red and pulses, and a desktop notification fires at the critical threshold." />
 </p>
 
 **An always-on-top floating widget that shows your claude.ai plan usage in real time, on Windows.** Built specifically around the OAuth token Claude Code already keeps on your machine, so it cannot be broken by Cloudflare changes that take down cookie-scraping trackers.
+
+## Idiomas / Languages
+
+Este fork adiciona um sistema de internacionalização (i18n) completo ao projeto original. Os idiomas disponíveis são:
+
+| Idioma | Código | Status |
+|---|---|---|
+| English | `en` | ✅ Padrão original |
+| Português (Brasil) | `pt-BR` | ✅ Tradução completa |
+
+Para trocar o idioma: abra as **Configurações** (ícone de engrenagem no widget) → seção **Idioma** → selecione o idioma desejado. A interface muda imediatamente, sem reiniciar o aplicativo.
+
+**O que é traduzido:**
+- Toda a interface do widget (labels, botões, tooltips, estados de erro)
+- Janela de configurações completa (seções, labels, opções dos menus)
+- Menu do ícone na bandeja do sistema
+- Notificações nativas do Windows
+- Diálogos de confirmação
+- Contagens regressivas e indicadores de tempo
+- Frases do mascote Claw'd
 
 ➡ **[Download the latest portable .exe](../../releases/latest)** — ~88 MB, single file, no install. Tested on Windows 11.
 
